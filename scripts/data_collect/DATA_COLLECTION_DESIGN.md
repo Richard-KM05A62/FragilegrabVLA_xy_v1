@@ -184,6 +184,16 @@ action[last] = state[last]
 
 数据集 manifest 中会记录 `action_source = next_observation_proxy`。以后若接入可读取的真实命令流，只需替换 action 生成器，不需要改变 image/state schema。
 
+#### 已知风险：动作代理与实际控制目标不完全等价
+
+当前 `action[t] = follower_state[t + 1]` 是可观测的运动结果代理，而不是主臂真正发送给从臂的控制目标。若真实控制指令在下一采样时刻尚未达到、从臂仍在运动、或存在主从通信与机械响应延迟，则：
+
+```text
+follower_state[t + 1] != commanded_target[t]
+```
+
+这会使当前 action 标签更接近“一个采样周期后的实际位置”，而非原始控制意图，并可能低估快速动作的目标增量。该风险在本阶段只做记录，不修改采集策略；日后若能够读取主臂命令或从臂目标指令，应以该真实命令流替换代理 action。
+
 ### 5.2 Sidecar
 
 数据集根目录额外输出：
