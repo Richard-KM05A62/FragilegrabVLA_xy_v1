@@ -1,32 +1,59 @@
 # FragileGrabVLA
 
-FragileGrabVLA 是一个面向易碎物品抓取的机器人学习研究项目，计划基于视觉语言动作模型 π0.5 和 Isaac Sim，探索仿真环境中的抓取操作与安全性问题。
+FragileGrabVLA 是一个围绕 Piper X 与视觉语言动作模型 π0.5 的易碎物体抓取研究项目。仓库用于维护真实机器人数据采集、数据处理、Isaac Sim 仿真验证、策略执行、实验记录和统一评测。
 
-## 当前阶段
+## 当前研究范围
 
-项目处于早期开发阶段，近期目标是完成 π0.5 与 Isaac Sim 的集成，建立“环境观测 → 模型推理 → 动作执行 → 新观测”的最小闭环。执行链路采用 π0.5 原生的动作序列（action chunk）。
+- Policy：π0.5
+- Robot：Piper X
+- Simulation：Isaac Sim
+- Sensors：外部 RGB-D 相机与腕部相机
+- Task：从简单抓取开始，逐步研究易碎属性、损伤判定和安全性问题
 
-易碎物品抓取的安全性研究方案尚待确定（Open Research Question / TBD）。当前进展与研究问题见 [项目状态](docs/status.md)。
+当前不引入 OpenVLA、其他 VLA、多策略注册表或多机器人抽象。π0.5 保留原生 action chunk。易碎物体安全机制仍是开放研究问题，项目尚无已确认的 Safety Layer。
 
-## 目录结构
+## 当前状态
 
-项目目录规划如下，代码目录随实现逐步建立：
+仓库已有一套 Piper X 双相机只读数据采集代码，包含主机时钟近邻对齐和 LeRobot 写盘逻辑。代码存在不等于完整链路已经验证；当前验证状态和风险见 [项目状态](docs/status.md)。
+
+Isaac Sim 场景、Piper X 仿真执行、π0.5 Piper 数据适配和 evaluation 仍处于设计或待实现阶段。
+
+## 研究链路
 
 ```text
-FragileGrabVLA/
-├── AGENTS.md             # 开发协作规范
-├── README.md             # 项目介绍
-├── configs/              # 模型、环境与任务配置
-├── src/                  # 模型集成、仿真与动作执行
-├── scripts/              # 运行与评估入口
-├── tests/                # 自动化测试
-└── docs/
-    ├── architecture.md   # 系统架构
-    └── status.md         # 开发进展与研究问题
+Real Robot Data Collection / Isaac Sim Recording
+                      ↓
+             Versioned Episode Data
+                      ↓
+          Validation and Data Processing
+                      ↓
+              π0.5 Training/Inference
+                      ↓
+            Isaac Sim / Piper X Execution
+                      ↓
+       Experiment Recording and Evaluation
 ```
 
-架构与数据流见 [架构说明](docs/architecture.md)。
+## 仓库入口
 
-## 数据与运行产物
+- [系统架构](docs/architecture.md)
+- [项目状态](docs/status.md)
+- [真实数据采集](docs/data_collection.md)
+- [数据格式](docs/data_format.md)
+- [π0.5 接入约束](docs/pi05.md)
+- [Isaac Sim 复现要求](docs/isaac_sim.md)
+- [评测设计](docs/evaluation.md)
+- [研究问题](docs/research_questions.md)
 
-仓库维护代码、配置和项目文档。数据集、视频、模型权重、checkpoint 及 `runs/` 等运行产物保存在本地或外部存储，通过 `.gitignore` 排除；相关来源和复现说明保留在仓库中。
+实际运行前，应先确认对应设备、SDK、OpenPI 和 Isaac Sim 版本。具体命令、机器路径和实验参数不写在本文件中。
+
+## 开始工作
+
+1. 先阅读 [项目状态](docs/status.md)，确认所需能力属于 Verified、In Progress 还是 TBD。
+2. 真机数采从 [真实数据采集](docs/data_collection.md) 开始；仿真移交从 [Isaac Sim 复现要求](docs/isaac_sim.md) 开始。
+3. 在运行机器上锁定依赖和外部资产版本，把个人设备与路径写入不提交的本地配置。
+4. 将运行使用的配置、代码版本、数据或场景版本和产物引用写入 episode manifest。
+
+## 数据与产物
+
+代码、配置模板、数据规范、外部资源 manifest 和可复现实验说明进入 Git。数据集、视频、模型权重、checkpoint、运行日志、生成资产和本机配置保存在本地或外部存储，不提交到仓库。

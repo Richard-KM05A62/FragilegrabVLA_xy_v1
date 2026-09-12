@@ -203,6 +203,35 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Workspace-local editor state
+.vscode/
+
+# FragileGrabVLA local configuration and generated artifacts
+configs/local/
+*.local.toml
+*.local.yaml
+*.local.yml
+data/
+datasets/*
+!datasets/README.md
+!datasets/manifests/
+!datasets/manifests/**
+checkpoints/
+weights/
+runs/
+logs/
+videos/
+outputs/
+assets/vendor/
+assets/generated/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.safetensors
+*.ckpt
+*.pth
+
 # Ruff stuff:
 .ruff_cache/
 
