@@ -16,7 +16,7 @@ FragileGrabVLA 是一个围绕 Piper X 与视觉语言动作模型 π0.5 的易�
 
 仓库已有一套 Piper X 双相机只读数据采集代码，包含主机时钟近邻对齐和 LeRobot 写盘逻辑。代码存在不等于完整链路已经验证；当前验证状态和风险见 [项目状态](docs/status.md)。
 
-Isaac Sim 场景、Piper X 仿真执行、π0.5 Piper 数据适配和 evaluation 仍处于设计或待实现阶段。
+仓库已加入 Isaac Sim 6.1.0 的 policy-free episode 入口、URDF 导入工具和结构完整性检查；这些代码已通过纯 Python 静态测试，但尚未在装有 Isaac Sim 的机器上运行验证。Piper X 场景资产、实机参数、π0.5 Piper 数据适配和正式 evaluation 仍处于 In Progress 或 TBD。
 
 ## 研究链路
 
@@ -42,6 +42,7 @@ Real Robot Data Collection / Isaac Sim Recording
 - [数据格式](docs/data_format.md)
 - [π0.5 接入约束](docs/pi05.md)
 - [Isaac Sim 复现要求](docs/isaac_sim.md)
+- [Isaac Sim 6.1.0 运行入口](scripts/sim/README.md)
 - [评测设计](docs/evaluation.md)
 - [研究问题](docs/research_questions.md)
 

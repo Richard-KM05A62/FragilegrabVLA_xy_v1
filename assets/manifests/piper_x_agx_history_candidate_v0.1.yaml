@@ -1,0 +1,49 @@
+schema_version: "fragilegrab.asset/0.1"
+status: "Candidate"
+
+asset:
+  id: "piper_x_agx_history_candidate"
+  robot: "piper_x"
+  purpose: "Isaac Sim 6.1.0 import candidate from the historical AGX workspace"
+
+source:
+  repository_url: "https://github.com/ZiiYuuuu/agx-piper-ros2.git"
+  commit: "96fb13fdf19a04ae178bbaa0c21014772e6b035b"
+  package_subpath: "src/agx_arm_ros/src/agx_arm_description/agx_arm_urdf/piper_x"
+  observed_workspace: "agx_datacollect_ws"
+  workspace_dirty_outside_asset_subpath: true
+
+files:
+  arm_urdf:
+    path: "urdf/piper_x_description.urdf"
+    sha256: "34126caac7d5b37bc2409f337ac246afbe0bb8cd47fc9f16df5038f19bd21e3a"
+    includes_gripper: false
+  arm_with_gripper_xacro:
+    path: "urdf/piper_x_with_gripper_description.xacro"
+    sha256: "fedee79ed75ebd075bc3bf140d72c84dc921d1615997bc0947e623bac263e639"
+    requires_materialization_to_urdf: true
+  license:
+    path: "../../../../LICENSE"
+    identifier: "MIT"
+    sha256: "247944c63de1573653722ba784f96123da267105b7b48577e0c8826a24b809f6"
+
+observed_joint_contract:
+  arm_revolute_dofs:
+    - "joint1"
+    - "joint2"
+    - "joint3"
+    - "joint4"
+    - "joint5"
+    - "joint6"
+  gripper_prismatic_dofs:
+    - "gripper_joint1"
+    - "gripper_joint2"
+  rotation_unit: "rad"
+  translation_unit: "m"
+
+adoption_requirements:
+  - "Materialize the gripper Xacro as a .urdf with the recorded Xacro/ROS version."
+  - "Import with Isaac Sim 6.1.0 and save the generated import manifest."
+  - "Verify mesh resolution, articulation root, DOF order, limits, mimic behavior and drive settings."
+  - "Do not treat this historical fork as the final official Piper asset until upstream and license provenance are reviewed."
+  - "Do not reuse this two-prismatic-joint contract for AgileX's current public Xacro, which has a different gripper/mimic structure."

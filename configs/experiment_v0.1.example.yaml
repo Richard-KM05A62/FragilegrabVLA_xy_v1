@@ -1,0 +1,100 @@
+# FragileGrabVLA experiment config v0.1 example.
+#
+# This checked-in example describes the current simulation-instrumentation
+# target. Machine paths, device identifiers, network addresses, ports and
+# checkpoint paths belong in configs/local/ or the runtime environment.
+
+schema_version: "fragilegrab.experiment/0.1"
+
+experiment:
+  id: "TBD"
+
+source:
+  kind: "simulation"
+  simulator:
+    name: "isaac_sim"
+    version: "6.1.0"
+    physics_backend: "TBD"
+    device: "TBD"
+    physics_dt_s: "TBD"
+    renderer: "TBD"
+    expected_stage_meters_per_unit: "TBD"
+    scene_ref: "TBD"
+    robot_asset_ref: "TBD"
+    seed: "TBD"
+
+robot:
+  name: "piper_x"
+  articulation_prim_path: "TBD"
+  expected_dof_names:
+    - "TBD"
+  joint_mapping_ref: "TBD"
+
+task:
+  id: "simple_grasp"
+  instruction: "TBD"
+  object_id: "TBD"
+  initial_condition_ref: "TBD"
+  success_definition_ref: "TBD"
+
+policy:
+  enabled: false
+  name: "pi05"
+
+execution:
+  action_source: "scripted_joint_position_targets"
+  action_semantics:
+    mode: "position"
+    value_type: "absolute"
+    rotation_unit: "rad"
+    translation_unit: "m"
+  # Each command is submitted before the named zero-based episode physics step.
+  # Fill this list in configs/local/. Values and timing are experiment inputs.
+  scripted_commands:
+    - at_physics_step: "TBD"
+      joint_position_targets:
+        TBD: "TBD"
+
+recording:
+  episode_schema_version: "fragilegrab.episode/0.1"
+  preserve_per_source_timing: true
+  max_physics_steps: "TBD"
+  observation_every_physics_steps: "TBD"
+  warmup_physics_steps: "TBD"
+  warmup_render_frames: "TBD"
+  cameras:
+    base_rgb:
+      prim_path: "TBD"
+      tick_rate_hz: "TBD"
+      # Isaac Sim 6.1 CameraSensor uses NumPy/OpenCV order: [height, width].
+      resolution_hw: ["TBD", "TBD"]
+    wrist_rgb:
+      prim_path: "TBD"
+      tick_rate_hz: "TBD"
+      resolution_hw: ["TBD", "TBD"]
+  object_state:
+    prim_path: "TBD"
+  contact:
+    # The contact prim and its threshold/radius are authored in scene_ref.
+    # The runner only wraps the existing prim and records its actual output.
+    sensor_prim_path: "TBD"
+    include_raw: true
+  video:
+    enabled: true
+    fourcc: "TBD"
+  required_streams:
+    - "observation.image.base_rgb"
+    - "observation.image.wrist_rgb"
+    - "robot_state"
+    - "object_state"
+    - "contact"
+    - "joint_effort"
+  simulation_streams:
+    - "object_state"
+    - "contact"
+    - "joint_effort"
+
+evaluation:
+  protocol_version: "fragilegrab.evaluation/0.1"
+  task_success_definition_ref: "TBD"
+  safety_event_definition_ref: "TBD"

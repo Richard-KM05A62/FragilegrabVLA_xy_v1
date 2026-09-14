@@ -92,12 +92,13 @@ real data collection              simulation recording
 | --- | --- | --- |
 | `docs/` | 项目架构、状态、数据、π0.5、仿真、评测和研究问题 | 随确认事实和实现同步更新 |
 | `scripts/data_collect/` | 当前 Piper X 真实数采实现与实现说明 | 现场验证前保持原位；出现稳定包边界后再迁移 |
+| `scripts/sim/` | Isaac Sim 6.1.0 policy-free episode、Piper URDF 导入和完整性检查 | 在目标 Isaac 环境运行验证后再扩展 π0.5 消费循环 |
 | `configs/` | 可共享配置模板与 schema | 对应模块字段确认后添加，个人配置进入 `configs/local/` |
 | `datasets/manifests/` | 外部数据版本和来源记录 | 首个可共享数据版本出现时添加 manifest |
 | `assets/manifests/` | Piper X、Isaac Sim 等外部资产记录 | 资产版本确认后添加 manifest |
 | `src/` | 未来稳定的可复用运行代码 | 第一个实际模块实现时创建，不预建空包 |
 | `evaluation/` | 未来评测协议和指标版本 | 第一版指标获批并实现时创建 |
 
-现阶段保留 `scripts/data_collect/` 中已有数采实现。新的源代码目录应随着一个实际可运行模块建立，并配套配置或运行说明；不为未来设想创建空包、空接口或一次性高层脚本。外部 robot/scene 资产通过 manifest 记录来源、版本、许可证、校验值和安装位置，不直接复制大文件进仓库。
+现阶段保留 `scripts/data_collect/` 中已有数采实现；仿真入口直接位于 `scripts/sim/`，没有提取真机/仿真的通用 runtime 层。新的源代码目录应随着一个实际可运行模块建立，并配套配置或运行说明；不为未来设想创建空包或空接口。外部 robot/scene 资产通过 manifest 记录来源、版本、许可证、校验值和安装位置，不直接复制大文件进仓库。
 
 当前进展与未决项见 [项目状态](status.md)。

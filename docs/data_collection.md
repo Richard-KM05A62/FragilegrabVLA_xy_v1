@@ -23,11 +23,21 @@
 
 当前 `action` 使用后一条对齐从臂状态作为代理标签。它不是已读取的主臂命令，训练前必须保留并检查 `action_source`，不能把两者视为等价。
 
+项目成员已确认主臂关节和夹爪控制目标可以取得。AgileX 官方 [`piper_sdk` 接口文档](https://github.com/agilexrobotics/piper_sdk/blob/master/asserts/V2/INTERFACE_V2.MD)提供了读取主臂 joint/gripper control message 的接口与原始单位；当前采集器使用的是 `pyAgxArm`，尚未确认实际运行版本中应通过哪个公开接口接入、如何与三路 host monotonic 时间对齐。因此该能力为 **Confirmed, integration TBD**，当前 `action` 语义保持不变。
+
+## 历史 `agx_datacollect_ws` 参考
+
+项目成员确认，外部 `agx_datacollect_ws` 是模型切换前的 OpenVLA 数据采集工作区。静态检查显示，它录制单路 D435i RGB、Piper TCP 位姿和夹爪开度到 ROS 2 MCAP，再以图像时间为锚点做最近邻配对，输出中心裁剪 RGB、绝对 TCP 位姿和七维 `[delta_xyz, delta_rpy, gripper_binary]` 标签。
+
+该工作区的采集、转换、统计和 CAN listener 文件与历史 `agx_ws` 中的对应文件逐文件一致。其 action 是相邻已观测 TCP 位姿的差分，不是主臂或从臂控制命令；录制列表也不包含 `/control/*` 或关节反馈。它可用于核对历史数据来源、Piper 单位和 ROS/CAN 行为，但不替代当前双相机 LeRobot 采集器，也不直接定义 π0.5 action。
+
+外部工作区顶层没有 Git 版本记录，当前目录中也未发现 bag、`dataset_statistics.json` 或转换后的数组产物。将其结论用于正式数据迁移前，仍需取得原始数据、配置和实际依赖版本，并验证旧 action 与同索引图像的因果对齐方向。
+
 ## 尚未完成的能力
 
 - 外部相机 depth 的采集、对齐、标定和数据字段；
 - 双相机与 Piper CAN 的整条现场验证记录；
-- 主臂实际命令或从臂目标指令的读取；
+- 主臂实际命令或从臂目标指令与当前采集器的接入、时间对齐和写盘验证；
 - 相机内外参、夹爪量程和设备版本的结构化记录；
 - 中断 episode 的完成标记、隔离和恢复流程；
 - 多 episode 会话、数据检查报告和数据版本发布流程。
