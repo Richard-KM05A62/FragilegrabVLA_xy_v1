@@ -73,6 +73,18 @@ observation、策略查询、chunk 执行和物理事件可能处于不同频率
 
 同一条 latency 计算中的时间戳必须处于同一时钟域。推理服务位于另一台机器时，策略 request send 和 response receive 使用执行端时钟记录；未建立时钟映射前，不直接相减服务端时间。
 
+### 向后兼容的演进预留
+
+v0.1 通过可选 stream descriptor、稀疏 timeline record 和带版本的 artifact reference 承载后续能力，不预建空模块，也不在当前 episode 中写入不存在的信号。后续新增字段遵循以下边界：
+
+- 数据处理产物不得覆盖原始 observation、state、action 或时间证据；派生数据通过 `transform_id`、输入引用、输出引用、代码版本和参数校验值追溯。
+- 每个数据源保留其原始时钟和时间戳；对齐结果另外记录目标时钟、对齐方法、方法版本、源样本引用、偏差或 skew、有效性及丢帧信息。没有已验证时钟映射时，不生成跨机器绝对延迟。
+- π0.5 查询保留完整 `predicted_action_chunk`、`query_id`、chunk horizon 和动作语义；逐项执行记录 `chunk_index`、requested/executed action、dispatch 时间与状态。未来的 chunk 执行长度、重规划、截断、取消或优化结果作为版本化执行规则和事件加入，不改变原始预测 chunk。
+- 新的触觉、力、视觉、物体状态、控制器诊断或损伤候选信号以可选 stream/event 加入；不存在的信号直接省略，不用零值伪造。
+- safety evaluation 是 episode 之后的版本化解释。原始测量、候选事件、评测协议和结论分别记录；未评定使用 `null`，只有实际执行有效评测且没有发现事件时才使用空 violations list。
+
+新增可选 stream 或 record type 且不改变现有字段语义时保持向后兼容；改变单位、坐标系、时间语义、action 含义或必填字段时必须升级 schema 版本并提供迁移说明。
+
 ### Action identity
 
 | 字段 | 语义 |
@@ -106,6 +118,6 @@ Isaac Sim episode 还应记录场景、机器人资产、随机种子、相机�
 
 Isaac Sim 6.1.0 的优先 instrumentation profile 包含双相机角色、Piper articulation state、实际提交的控制命令、目标物体状态，以及官方接口可获得的 contact/joint effort 原始读数。physics backend、传感器更新周期、contact threshold、Piper joint mapping、物体属性和成功判据仍为 TBD；配置不得补写默认实验值。
 
-当前 `scripts/sim/run_instrumented_episode.py` 已按该 profile 实现一种存储：`episode_manifest.json` 保存 core manifest，`timeline.jsonl` 交错保存 execution/observation record，两路 `streams/<camera-role>/*.npy` 保存原始 HWC `uint8` RGB/RGBA，`videos/` 保存人工复核视频。它是 Episode Schema v0.1 的一个具体 writer，不要求现有 LeRobot 真机数据迁移到相同目录。运行器把 JointStateSensor 返回的 revolute/prismatic position 分别标为 rad/m，并另外记录 `stage_meters_per_unit`；object pose 和 linear velocity 保留 stage length unit 及换算因子。
+当前 `scripts/sim/run_instrumented_episode.py` 已按该 profile 实现一种存储：`episode_manifest.json` 保存 core manifest，`timeline.jsonl` 交错保存 execution/observation record，两路 `streams/<camera-role>/*.npy` 保存原始 HWC `uint8` RGB/RGBA，`videos/` 保存人工复核视频。运行目录同时保留原始 experiment config 和将相对 `scene_ref` 规范化后的有效快照，manifest 对两者记录校验值。它是 Episode Schema v0.1 的一个具体 writer，不要求现有 LeRobot 真机数据迁移到相同目录。运行器把 JointStateSensor 返回的 revolute/prismatic position 分别标为 rad/m，并另外记录 `stage_meters_per_unit`；object pose 和 linear velocity 保留 stage length unit 及换算因子。
 
 [Isaac Sim 6.1.0 Contact Sensor schema](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/omniverse_usd/sensor_schema.html) 将 threshold/force 的线性量纲定义为 `kg * stage_length_unit / s^2`；因此 runner 不在非米制 stage 上把 raw contact value 直接标成 N，也不自行推断 raw impulse 单位。后续评测转换必须结合 episode 中实际 `stage_meters_per_unit` 和锁定 backend 的官方定义。

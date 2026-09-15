@@ -7,7 +7,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | `run_instrumented_episode.py` | 预检配置；在 Isaac Sim 6.1.0 中运行一次脚本动作 episode。 |
-| `validate_episode.py` | 不依赖 Isaac Sim，检查 episode v0.1 的引用、时间线、双相机、state/contact/action 和视频完整性。 |
+| `validate_episode.py` | 不依赖 Isaac Sim，检查 episode v0.1 的引用、时间线、双相机、DOF 契约、state/contact/action 和视频可解码性。 |
 | `import_piper_urdf.py` | 用 6.1.0 `URDFImporter` 将已展开的 Piper `.urdf` 转为 USD，并保存输入、输出和导入选项的校验记录。 |
 
 实现直接使用 NVIDIA 6.1.0 公共接口：
@@ -19,7 +19,11 @@
 - [`CameraSensor` / `RtxCamera`](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/py/source/extensions/isaacsim.sensors.experimental.rtx/docs/index.html) 记录 RGB；
 - [`URDFImporter`](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/py/source/extensions/isaacsim.asset.importer.urdf/docs/index.html) 转换 Piper URDF。
 
-## 场景必须已经包含的内容
+## 场景来源与必须内容
+
+不从空白 USD 自行设计实验场景。首选基线是 AgileX College `IsaacLab_Data_Collection` 中现成的 `Isaac-Stack-Cube-Piper-IK-Rel-v0` 方块任务，并将机器人核对或替换为 AgileX `piper_isaac_sim` 提供的 Piper X USD。DynamicVLA 的 Piper pick/place 环境和可下载 DOM USD scenes/objects作为第二候选，用于参考 VLA evaluation server、场景配置和视频评测。两者分别基于 Isaac Sim 5.1.0 和 4.5.0，进入本项目之前必须完成 6.1.0 API、资产、DOF、drive 和渲染验证。
+
+HybridVLA 的公开仿真评测是 RLBench/CoppeliaSim；DexVLA 的公开 `smart_eval_agilex.py` 默认只带待替换的 fake robot environment。它们可参考 observation/action 处理方式，但不提供本项目可直接加载的 Piper X Isaac USD。
 
 运行器不猜测场景参数，也不在脚本里创建桌面、物体、灯光、相机或控制增益。交接的 `scene_ref` 必须已经包含：
 
@@ -36,7 +40,7 @@ v0.1 runner 要求 `max_physics_steps` 能被 observation 周期整除，并要�
 
 ## Piper X 资产准备
 
-优先检查并锁定 [`agilexrobotics/piper_isaac_sim` 的 `USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd)、commit 和许可证。若先复用历史 `agx_datacollect_ws` 资产，可从 [`piper_x_agx_history_candidate_v0.1.yaml`](../../assets/manifests/piper_x_agx_history_candidate_v0.1.yaml) 所记 commit 取得 URDF、Xacro 和 meshes。
+优先检查并锁定 [`agilexrobotics/piper_isaac_sim` 的 `USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd)、commit 和许可证。已检查的 2025-12-10 仓库头提交为 `8e1f88fdb7afca49c40e9a0c1c01cc588e86f0d2`；实际下载时仍记录解析到的 commit 和文件 SHA-256。若官方 USD 在 6.1.0 验证失败，才退回历史 `agx_datacollect_ws` 资产，并从 [`piper_x_agx_history_candidate_v0.1.yaml`](../../assets/manifests/piper_x_agx_history_candidate_v0.1.yaml) 所记 commit 取得 URDF、Xacro 和 meshes。
 
 历史 `piper_x_description.urdf` 只有六轴机械臂；带夹爪文件是 Xacro。Isaac Sim 6.1.0 `URDFImporter` 只接收 `.urdf`，因此必须在匹配的 ROS/Xacro 环境先展开文件，并记录 Xacro/ROS 版本和展开后 SHA-256。示意命令如下，其中路径由运行者按资产挂载位置填写：
 
@@ -92,7 +96,7 @@ python3 scripts/sim/run_instrumented_episode.py \
   --headless
 ```
 
-完成后可在任意带 NumPy 的 Python 环境验证：
+完成后可在任意同时带 NumPy 和 OpenCV 的 Python 环境验证：
 
 ```bash
 python3 scripts/sim/validate_episode.py <output-root>/<episode-id>
@@ -103,6 +107,7 @@ python3 scripts/sim/validate_episode.py <output-root>/<episode-id>
 ```text
 <episode-id>/
   experiment_config.yaml
+  experiment_config.original.yaml
   episode_manifest.json
   timeline.jsonl
   streams/base_rgb/*.npy
@@ -111,7 +116,9 @@ python3 scripts/sim/validate_episode.py <output-root>/<episode-id>
   videos/wrist_rgb.mp4
 ```
 
-失败运行保留 `episode_manifest.json`、`run_error.txt` 和 `.incomplete`；显式中断写入 `termination.status=interrupted`。完整性检查不会把两者误认为成功 episode。
+`experiment_config.original.yaml` 保留运行时输入的原文；`experiment_config.yaml` 是有效快照，其中相对 `scene_ref` 已转换为解析后的绝对路径。manifest 记录两者的 SHA-256 和规范化前后的值。
+
+验证器会逐帧解码两路 MP4，检查帧数、FPS 和分辨率，并确认 timeline 中的 DOF 名称、类型和顺序始终与 stream descriptor 一致。失败运行保留 `episode_manifest.json`、`run_error.txt` 和 `.incomplete`；显式中断写入 `termination.status=interrupted`。完整性检查不会把两者误认为成功 episode。
 
 ## 另一台电脑最快复现
 

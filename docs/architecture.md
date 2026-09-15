@@ -84,7 +84,9 @@ real data collection              simulation recording
 
 真实采集电脑、π0.5 推理设备和 Isaac Sim 设备可以是不同机器。仓库负责维护可共享的配置模板、版本信息、数据契约和移交说明；机器路径、设备序列号、账号、权重和本地缓存不进入 Git。
 
-当前已知部署组合包括队友电脑上的 π0.5 本地推理和另一环境中的 Isaac Sim，但两者的系统版本、通信拓扑与延迟要求尚未形成可验证记录，均为 TBD。
+第一阶段计划在队友的同一台电脑上运行 Isaac Sim 6.1.0 与 π0.5 推理，两者保持独立进程和依赖环境，通过本机连接传递 observation 与 action chunk。该部署不需要跨机器时钟映射，但仍需在执行端记录 observation、请求、响应和 action dispatch 的同机单调时间；GPU 分配、显存余量、端口和进程启动顺序须按目标机实测并写入运行配置或 manifest。
+
+这里的连接是 loopback 进程间通信，不是跨电脑远程访问。优先沿用锁定 OpenPI 版本的 WebSocket server/client 协议，客户端连接 `127.0.0.1`；该版本官方 `serve_policy.py` 默认监听 `0.0.0.0`，目标机须记录实际监听地址，若只允许本机访问则通过最小启动修改或主机网络规则限制。若目标机实测证明 Isaac Sim 与 OpenPI 能在同一 Python 进程稳定共存，才评估进程内调用，不能为了省略本机 transport 混合两套相互冲突的依赖环境。
 
 ## 7. 仓库演进规则
 

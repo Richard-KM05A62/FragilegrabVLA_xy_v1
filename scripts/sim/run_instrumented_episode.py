@@ -9,6 +9,7 @@ Isaac runtime is started.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -26,6 +27,7 @@ from typing import Any
 EXPERIMENT_SCHEMA = "fragilegrab.experiment/0.1"
 EPISODE_SCHEMA = "fragilegrab.episode/0.1"
 ISAAC_VERSION = "6.1.0"
+NUMPY_LEGACY_SEED_MAX = 2**32 - 1
 EPISODE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 URI_PREFIXES = ("omniverse://", "http://", "https://")
 
@@ -137,8 +139,16 @@ def validate_config(
         "source.simulator.expected_stage_meters_per_unit",
     )
     seed = _required(config, "source.simulator.seed")
-    if isinstance(seed, bool) or not isinstance(seed, int):
-        raise ConfigError("source.simulator.seed must be an integer")
+    if (
+        isinstance(seed, bool)
+        or not isinstance(seed, int)
+        or seed < 0
+        or seed > NUMPY_LEGACY_SEED_MAX
+    ):
+        raise ConfigError(
+            "source.simulator.seed must be an integer in "
+            f"[0, {NUMPY_LEGACY_SEED_MAX}]"
+        )
 
     scene_ref = _required(config, "source.simulator.scene_ref")
     if not isinstance(scene_ref, str) or not scene_ref.strip():
@@ -178,6 +188,12 @@ def validate_config(
         value = _required(config, dotted_path)
         if not isinstance(value, str) or not value.strip():
             raise ConfigError(f"{dotted_path} must be a non-empty string")
+    success_definition_ref = _at(config, "task.success_definition_ref")
+    if (
+        not isinstance(success_definition_ref, str)
+        or not success_definition_ref.strip()
+    ):
+        raise ConfigError("task.success_definition_ref must be a non-empty string or TBD")
 
     if _required(config, "policy.enabled") is not False:
         raise ConfigError("policy.enabled must remain false for this runner")
@@ -263,6 +279,8 @@ def validate_config(
             "tick_rate_hz": tick_rate,
             "resolution_hw": tuple(resolution),
         }
+    if cameras["base_rgb"]["prim_path"] == cameras["wrist_rgb"]["prim_path"]:
+        raise ConfigError("base_rgb and wrist_rgb must reference different camera prims")
 
     object_prim = _prim_path(
         _required(config, "recording.object_state.prim_path"),
@@ -437,6 +455,53 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def _write_yaml(path: Path, value: dict[str, Any]) -> None:
+    try:
+        import yaml
+    except ImportError as exc:  # pragma: no cover - already required by _load_yaml
+        raise ConfigError(
+            "PyYAML is required to write the effective config snapshot"
+        ) from exc
+
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8") as handle:
+        yaml.safe_dump(value, handle, allow_unicode=True, sort_keys=False)
+    temporary.replace(path)
+
+
+def _snapshot_configs(
+    config: dict[str, Any],
+    runtime: dict[str, Any],
+    config_path: Path,
+    episode_dir: Path,
+) -> dict[str, Any]:
+    original_snapshot = episode_dir / "experiment_config.original.yaml"
+    shutil.copyfile(config_path, original_snapshot)
+
+    effective_snapshot = episode_dir / "experiment_config.yaml"
+    effective_config = copy.deepcopy(config)
+    effective_config["source"]["simulator"]["scene_ref"] = runtime[
+        "resolved_scene_ref"
+    ]
+    _write_yaml(effective_snapshot, effective_config)
+
+    return {
+        "storage_ref": effective_snapshot.name,
+        "sha256": _sha256(effective_snapshot),
+        "schema_version": EXPERIMENT_SCHEMA,
+        "source_snapshot": {
+            "storage_ref": original_snapshot.name,
+            "sha256": _sha256(original_snapshot),
+        },
+        "normalized_fields": {
+            "source.simulator.scene_ref": {
+                "input": runtime["scene_ref"],
+                "effective": runtime["resolved_scene_ref"],
+            }
+        },
+    }
+
+
 def _append_jsonl(handle: Any, record: dict[str, Any]) -> None:
     json.dump(_jsonable(record), handle, ensure_ascii=False, allow_nan=False)
     handle.write("\n")
@@ -470,9 +535,7 @@ def run_episode(
     incomplete_marker = episode_dir / ".incomplete"
     incomplete_marker.write_text("episode has not finalized\n", encoding="utf-8")
 
-    config_snapshot = episode_dir / "experiment_config.yaml"
-    shutil.copyfile(config_path, config_snapshot)
-    config_hash = _sha256(config_snapshot)
+    config_record = _snapshot_configs(config, runtime, config_path, episode_dir)
     repo_root = Path(__file__).resolve().parents[2]
     timeline_path = episode_dir / "timeline.jsonl"
     error_path = episode_dir / "run_error.txt"
@@ -485,11 +548,7 @@ def run_episode(
         "episode_schema_version": EPISODE_SCHEMA,
         "episode_id": episode_id,
         "experiment_id": runtime["experiment_id"],
-        "experiment_config": {
-            "storage_ref": config_snapshot.name,
-            "sha256": config_hash,
-            "schema_version": EXPERIMENT_SCHEMA,
-        },
+        "experiment_config": config_record,
         "source": {
             "kind": "simulation",
             "simulator": {
@@ -500,7 +559,8 @@ def run_episode(
                 "renderer": runtime["renderer"],
                 "physics_dt_s": runtime["physics_dt_s"],
                 "seed": runtime["seed"],
-                "scene_ref": runtime["scene_ref"],
+                "scene_ref": runtime["resolved_scene_ref"],
+                "input_scene_ref": runtime["scene_ref"],
             },
         },
         "robot": {

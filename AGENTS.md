@@ -14,7 +14,7 @@
 
 - 课题是易碎物品抓取。
 - 项目长期定位是围绕 Piper X 与 π0.5，维护真实数据采集、数据处理、仿真验证、策略执行、易碎性研究和统一评测的研究工作区。
-- 当前仅计划使用 π0.5；近期工程目标仍是验证 Piper X 数据链路，并在 Isaac Sim 中打通简单抓取的最小闭环。
+- 当前仅计划使用 π0.5；近期工程目标仍是验证 Piper X 数据链路，并在 Isaac Sim 中打通简单抓取的最小闭环并将建立一套fragilegrab的评价体系。
 - 保留 π0.5 原生 action chunk 范式，不得未经确认改造成单步动作或通用模型输出。
 - 不得擅自引入 OpenVLA、其他 VLA，或面向多模型的 backend、adapter、policy registry 等抽象。
 - 易碎物品安全机制是 **Open Research Question / TBD**。不得实现、命名或假定项目中已经存在 Safety Layer。

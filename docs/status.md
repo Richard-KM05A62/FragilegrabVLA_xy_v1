@@ -6,13 +6,18 @@
 
 - 项目定位为 Piper X + π0.5 易碎物体抓取研究工作区，覆盖真机数据、仿真、策略和评测。
 - 当前只计划使用 π0.5，并保留原生 action chunk。
+- π0.5 第一阶段策略实验使用 OpenPI 官方 `pi05_base` 基础 checkpoint，不做微调，目的是测量基础模型在 Piper X Isaac Sim 场景中的零微调表现；后续微调必须作为独立实验记录。
+- 零微调基线使用锁定 OpenPI commit 中 `Pi0Config(pi05=True)` 和 `sample_actions` 的默认设置，不添加基于结果调出的模型采样参数。Piper 字段映射、padding、归一化和仿真控制映射仍是运行所必需的显式接口配置。
 - 外部 `agx_ws` 属于模型切换前的 OpenVLA 历史实现；当前项目不继续采用 OpenVLA，只将其中的 Piper X 数据与执行接口作为核对依据。
 - 外部 `agx_datacollect_ws` 属于同一代 OpenVLA 历史数采管线；它只作为旧数据来源和设备语义参考，不替代当前双相机 LeRobot 采集器。
 - Isaac Sim 是近期仿真环境，第一项任务是简单抓取。
 - 真实数据采集使用一个外部相机和一个腕部相机；外部相机具备深度能力。
 - 项目成员确认主臂关节和夹爪控制目标可以取得；当前采集器尚未接入或验证该数据流。
 - 当前 Isaac Sim 目标版本为 NVIDIA Isaac Sim 6.1.0，仿真 instrumentation 适配优先于 π0.5 推理接入。
+- 仿真场景不从空白 USD 自行设计；优先迁移 AgileX College 的 Piper 方块堆叠任务并使用 AgileX 官方 Piper X USD，DynamicVLA 的 Piper pick/place 与 DOM scene/object 包作为第二候选。上游版本均低于 6.1.0，采用前必须记录来源并完成 6.1.0 迁移验证。
+- 第一阶段在队友同一台电脑上运行 Isaac Sim 6.1.0 和 π0.5 推理，使用独立进程与依赖环境并通过本机连接交换 observation/action chunk。
 - 仿真实验需要设置物体的易碎相关属性，生成抓取视频，并通过项目评测体系计算指标。
+- Episode 数据契约需要为不可变原始数据、版本化数据处理、多个时钟域与对齐证据、π0.5 原生 action chunk 的执行/重规划记录，以及未来新增的感知、控制和安全评测信号保留向后兼容的扩展位置；未知信号不以占位数值伪造。
 - 易碎物体安全机制整体为 **Open Research Question / TBD**；项目没有已确认或已实现的 Safety Layer。
 - 代码、配置模板和项目事实进入 Git；数据、视频、权重、checkpoint、日志和生成产物存放在外部或本地。
 
@@ -40,7 +45,7 @@
 - 以 `configs/experiment_v0.1.example.yaml`、Episode Schema v0.1 和 Evaluation Schema v0.1 建立仿真实验记录契约；runner/validator 已实现，尚未在 Isaac Sim 中运行验证。
 - 在 Isaac Sim 6.1.0 目标机准备并验证 Piper 场景，生成第一份 policy-free instrumented episode；π0.5 inference 暂不在该步骤实现。
 - 明确真实数据到 OpenPI π0.5 的 Piper observation/action transform。
-- 定义可由队友直接复现的 Isaac Sim Piper X 简单抓取场景包。
+- 从锁定的公开 Piper 仿真任务迁移并验证可由队友直接复现的 Isaac Sim 6.1.0 Piper X 简单抓取场景包。
 - 建立实验 manifest、视频记录与第一版评测输入输出约定。
 - 清理编辑器缓存、机器路径和生成产物的 Git 边界。
 
@@ -54,7 +59,7 @@
 - Isaac Sim 6.1.0 的实际 build 与安装证据、physics backend、最终 Piper X 资产 commit/import 结果、关节/夹爪驱动、控制接口和传感器配置。
 - action chunk 的执行长度、控制频率、重推理条件和异常处理。
 - 易碎物体属性的物理建模、损伤判定、指标定义和阈值。
-- 真机、Isaac Sim 与 π0.5 推理分布在不同机器时的通信方式和延迟约束。
+- 同机运行 Isaac Sim 与 π0.5 时的 GPU 分配、显存余量、推理端口、进程启动顺序和可持续控制频率；未来真机与推理分布在不同机器时的通信方式和延迟约束。
 
 ## Known Risks
 

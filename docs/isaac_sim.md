@@ -14,6 +14,15 @@
 
 AgileX 官方公开仓库 [`agilexrobotics/piper_isaac_sim`](https://github.com/agilexrobotics/piper_isaac_sim) 提供 [`USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd) 与 Piper X description，[`agilexrobotics/agx_arm_urdf`](https://github.com/agilexrobotics/agx_arm_urdf) 提供 Piper X URDF/Xacro 与 mesh。两者可作为 Candidate 上游；采用前必须锁定具体 commit，记录许可证、校验值、joint/mesh 引用和 Isaac Sim 6.1.0 导入结果。仓库当前不复制这些大型第三方资产。
 
+场景基线不从空白 USD 自行搭建。优先复用并迁移已有 Piper 仿真任务：
+
+1. AgileX College 的 [`IsaacLab_Data_Collection`](https://github.com/agilexrobotics/Agilex-College/tree/master/isaac_sim/agx_arm_IsaacLab/IsaacLab_Data_Collection) 已提供 `Isaac-Stack-Cube-Piper-IK-Rel-v0` 方块堆叠环境、遥操作、自动采集和回放入口，可作为简单抓取/堆叠场景与 IK 控制基线；其声明环境是 Isaac Sim 5.1.0.0、IsaacLab 0.54.3，必须先做 6.1.0 迁移验证。
+2. DynamicVLA 的[官方仓库](https://github.com/hzxie/DynamicVLA)提供可下载的 DOM USD scenes/objects、Piper `pick`/`place`/`long-horizon` 仿真入口和分离的 evaluation/inference 进程，可作为 VLA 场景、任务终止、视频评测和本机进程通信参考；其公开基线是 Isaac Sim 4.5.0、Isaac Lab 2.2.1，且资产和代码许可证需分别核对，不能直接声称兼容 6.1.0。
+
+以上游任务包为起点，把其中 Piper 机器人资产替换或核对为 AgileX 官方 Piper X USD；只添加本项目必需且上游缺少的第二相机、contact/effort 记录和 episode instrumentation。任何 drive、物体属性、相机位姿或控制参数都优先继承所选上游版本并记录来源；版本迁移中必须修改的值通过差异清单和 6.1.0 运行证据确认，不凭视觉效果手工调参。
+
+HybridVLA 和 DexVLA 可用于核对 VLA 的多相机排列、robot state 归一化、action chunk/队列和定期重推理方式，但当前公开实现不提供 Piper X + Isaac Sim 场景：HybridVLA 的公开仿真评测基于 RLBench/CoppeliaSim；DexVLA 的 `smart_eval_agilex.py` 提供三相机、状态统计和 action queue 示例，但仓库内默认 AgileX environment 是待替换的 fake environment。因此它们不是本项目的 USD 来源，也不作为 π0.5 模型接口依赖。
+
 历史 AGX workspace 的夹爪 Xacro 与 AgileX 当前公开 Xacro 不是同一个 joint contract：前者静态检查得到两个独立的 `gripper_joint1/2`，当前公开文件还包含一个 `gripper` 驱动关节和 mimic 关系。两者不能共用 DOF 列表或控制 target。有效 config 必须填写最终 USD 的实际 DOF 顺序，运行器会逐项比对。
 
 ## 可移交场景包
@@ -45,7 +54,7 @@ finalize            -> episode manifest, timeline, RGB arrays and two videos
 
 当前动作来源固定为 config 中的 `scripted_joint_position_targets`。运行器在每个指定的 episode physics step 之前提交 target，之后通过 `SimulationManager.step()` 推进一个物理步，仅在 observation tick 调用 `RenderingManager.render()`。π0.5 transport、action chunk 消费和在线 task termination 尚未实现。
 
-运行器只加载预先制作的场景，不在核心逻辑中生成桌面、物体、相机、contact threshold 或 drive gain。这些值必须来自有效场景和 `configs/local/` 配置。完整入口、输出布局和跨电脑复现步骤见 [`scripts/sim/README.md`](../scripts/sim/README.md)。
+运行器只加载从上述上游任务包选择、锁定并完成 6.1.0 迁移验证的场景，不在核心逻辑中生成桌面、物体、相机、contact threshold 或 drive gain。这些值来自上游场景或有来源记录的 instrumentation 差异，并进入有效场景和 `configs/local/` 配置。完整入口、输出布局和跨电脑复现步骤见 [`scripts/sim/README.md`](../scripts/sim/README.md)。
 
 ## 6.1.0 instrumentation 顺序
 

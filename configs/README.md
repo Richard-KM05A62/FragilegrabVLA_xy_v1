@@ -12,4 +12,6 @@
 
 当前模板关闭 policy，因为第一步只验证仿真 instrumentation。启用 π0.5 的实验需要另外记录实际 OpenPI commit、checkpoint id、transform id、normalization stats id、chunk execution rule 和 replan rule；这些字段在推理适配前不作为空配置写入。
 
+已确认的下一阶段策略基线使用未微调的官方 `pi05_base` 和锁定 OpenPI 版本的 π0.5 默认模型/采样设置。策略运行模块实现后再加入对应的 policy-enabled 配置模板；模板应保存解析后的 `action_dim=32`、`action_horizon=50`、`max_token_len=200` 和默认采样步数 10，而不是只写含义不稳定的 `default`。Piper 有效动作映射、归一化统计和 chunk 执行规则仍须填写实际引用。
+
 仿真 config 的 `scripted_commands` 是固定基线输入，只使用实际 USD DOF 名称和 position target。运行器在启动后读取资产的实际 DOF 顺序、limits、drive type、stiffness 和 damping，发现不匹配或 target 越界即停止；这些数值不在模板中预填。
