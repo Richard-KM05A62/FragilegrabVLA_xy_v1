@@ -151,6 +151,7 @@ activemq-data/
 .env
 .envrc
 .venv
+.venv-*/
 env/
 venv/
 ENV/
@@ -224,6 +225,7 @@ videos/
 outputs/
 assets/vendor/
 assets/generated/
+assets/local/
 *.mp4
 *.mov
 *.avi
@@ -231,6 +233,13 @@ assets/generated/
 *.safetensors
 *.ckpt
 *.pth
+*.pt
+*.onnx
+pytorch_model*.bin
+flax_model*.msgpack
+openpi*.tar
+openpi*.tar.gz
+openpi*.tgz
 
 # Ruff stuff:
 .ruff_cache/

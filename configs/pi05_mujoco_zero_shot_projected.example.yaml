@@ -1,0 +1,30 @@
+schema_version: fragilegrab.pi05_rollout/0.1
+
+# 锁定模型与接口；该实验只评估未微调 pi05_base 的 MuJoCo 行为。
+openpi_commit: 215abfb217dbac7d5f1273282331b9b1866c0479
+openpi_interface_base_commit: 15a9616a00943ada6c20a0f158e3adb39df2ccac
+model: pi05_base
+contract_id: piper_x_joint_position_dual_rgb_v0.3
+norm_stats_id: piper_x_mujoco_scripted_calibration_v0.1
+model_action_dim: 32
+action_horizon: 50
+max_token_len: 200
+sample_steps: 10
+
+task: F1
+prompt: pick up the object from the table
+
+# 仅用于 MuJoCo zero-shot 诊断。原始提议、投影原因和实际动作分别记录。
+execution_mode: diagnostic_projection
+execution_horizon: 5
+control_steps_per_action: 25
+max_policy_queries: 40
+stop_on_task_success: true
+
+# 20 Hz 下分别对应 1 rad/s 和 0.07 m/s 的每步变化上限。
+max_joint_delta_rad: 0.05
+max_gripper_delta_m: 0.0035
+
+# 这是诊断自动停止条件，不是材料破裂阈值，也不构成已验证 Safety Layer。
+diagnostic_stop_contact_force_N: 10.0
+stop_on_unintended_collision: true

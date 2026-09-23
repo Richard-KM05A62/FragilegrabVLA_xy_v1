@@ -1,0 +1,53 @@
+{
+  "schema_version": "fragilegrab.pi05_workflow_smoke/0.1",
+  "recorded_at": "2026-09-19T18:12:26+08:00",
+  "status": "passed_without_action_execution",
+  "scope": "transport_and_pi05_base_inference_only",
+  "action_execution_attempted": false,
+  "repository_commit_at_run": "3c9b919ae9ba91a89e8ca5641351b58c7d5c358f",
+  "server_contract": {
+    "openpi_commit": "215abfb217dbac7d5f1273282331b9b1866c0479",
+    "openpi_interface_base_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+    "contract_id": "piper_x_joint_position_dual_rgb_v0.3",
+    "norm_stats_id": "piper_x_workflow_smoke_v0.1",
+    "normalization_purpose": "transport_only",
+    "execution_permitted": false,
+    "action_horizon": 50,
+    "effective_action_dim": 7
+  },
+  "request": {
+    "base_rgb_shape": [240, 320, 3],
+    "base_rgb_sha256": "6b2fcc8cd7133045fea3ebddc5145d550bff408a756d59b58fa5d8fd6292bbf5",
+    "wrist_rgb_shape": [240, 320, 3],
+    "wrist_rgb_sha256": "5d11ff43cb19168eff2f7792b0ad6ff062009fd69c6bab97c339c850ce5adbc2",
+    "state": [0.0, 0.2, -0.3, 0.0, 0.1, 0.0, 0.0],
+    "prompt": "pick up the object carefully"
+  },
+  "response": {
+    "action_shape": [50, 7],
+    "action_sha256": "ae4ddac084eaa21f758102a617ea810ac68159878702b685fb5123164691f414",
+    "action_min": -0.3524296390524505,
+    "action_max": 0.20349672342902436
+  },
+  "latency": {
+    "cold_start_sample_count": 1,
+    "cold_start_round_trip_ms": 32425.782340000296,
+    "warm_sample_count": 3,
+    "warm_round_trip_ms": [553.8662640010443, 364.60113899920543, 322.79863899930206],
+    "warm_mean_ms": 413.7553473331839,
+    "warm_max_ms": 553.8662640010443,
+    "interpretation": "first request includes cold-start compilation; the three later requests characterize the warmed transport-plus-inference path"
+  },
+  "local_runtime_output": {
+    "ignored_artifact": "outputs/pi05_workflow_smoke.json",
+    "sha256": "ae65e8966abf9015edd9309d135979e4b8d4d1eb13546cc2c04d628cfd636499",
+    "warm_ignored_artifact": "outputs/pi05_workflow_warm.json",
+    "warm_sha256": "ae8ce0339d4a85d3d8e060636dc5bfe7d30dafc2675a0aab9c22c73ae4be1710"
+  },
+  "normalization": {
+    "norm_stats_sha256": "2c5db483cea6f42bd6567e0d1effcec784979bd41a4f7b9792252eee882945aa",
+    "provenance_sha256": "9479b5a03f33d1e93a2649bc6949f405f0df2c2dc86b32da7751294bea405a23",
+    "source": "synthetic identity-like scale; not derived from robot or task data"
+  },
+  "limitation": "This verifies serialization, network transport, contract validation, and pi05_base inference only. It does not validate PiPER-X action quality, calibration, grasping, or safe execution."
+}

@@ -1,0 +1,44 @@
+schema_version: fragilegrab.asset/0.1
+status: Verified in local MuJoCo model audit
+asset:
+  id: piper_x_official_mujoco_v0.1
+  robot: piper_x
+  purpose: MuJoCo benchmark and pi05 adapter validation
+source:
+  repository_url: https://github.com/agilexrobotics/agx_arm_sim.git
+  commit: f8cd8b147c75d59e14f90fb0646770eefa268ed0
+  license: MIT
+  urdf_submodule_commit: 1ee5659d02b33b9379fd647a2e5647800d67f0f4
+  combined_piper_x_d435_urdf_sha256: efccdf9871c199e78d9981f5020b6ee776a56bf3d258eecca1aa0255e7422824
+  piper_x_d435_isaac_usd_sha256: 0745992afe955862c7d013db5426b456d502367f7fe0ea8f241ff0f7fadc5f0a
+  official_urdf_to_mjcf_script_sha256: ca66ae0373925fc530693818ea6647c035b00fbdc2fae5f2a0e115b231c85ff4
+derivation:
+  - Verify the pinned agx_arm_sim commit, its agx_arm_urdf submodule commit, and source hashes.
+  - Use the official combined PiPER-X + gripper + D435 URDF and fixed camera-mount chain.
+  - Convert official DAE visual meshes to OBJ without changing geometry; retain official STL collision meshes.
+  - Convert ROS camera_link axes to MuJoCo camera axes; no targetbody or object-following camera is used.
+  - Add benchmark-defined position actuators, gravity compensation, F1 work pose, fixed global camera, table and object.
+verified_local_audit:
+  date: 2026-09-19
+  mujoco: 3.3.7
+  nq: 15
+  nu: 7
+  static_max_drift: 1.0795046771946612e-19
+  joint1_tracking_error_rad: 0.0010029967329973216
+  gripper_open_m: [0.04999999999709149, -0.04999999878548155]
+  gripper_closed_m: [7.427700895232183e-10, -4.825842223001695e-10]
+  global_and_wrist_render_nonconstant: true
+  scripted_f1_smoke:
+    seed: 7
+    physics_steps: 6500
+    frames: 260
+    reach: true
+    pick: true
+    task_success: true
+    trajectory_sha256: 0a545bf49a272adf6c0e535bccd41d4e75ad78cd1ed137326d43ca006fd328db
+    artifact_retention: temporary run removed after manifest verification
+limitations:
+  - Official source identity and mesh geometry do not prove metrology-grade equality to the user's physical unit.
+  - Position-controller gains, friction, armature, gravity compensation and F1 work pose are benchmark-defined.
+  - D435 field of view is a Candidate until camera intrinsics are bound to the physical device.
+  - Visual rendering is diagnostic, not a photorealistic digital twin.

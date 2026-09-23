@@ -1,0 +1,27 @@
+provenance: source-derived
+说明: 复用锁定 LIBERO-Spatial bowl-to-plate 场景资产，仅将本轮 expert smoke 的 target 指向场景内 cookies box。
+values:
+  scene_type: libero_task
+  task_id: libero_spatial_pick_black_bowl_table_center_to_plate
+  derived_task_id: libero_spatial_derived_cookies_to_plate
+  instruction: Pick up the cookies box and place it on the plate
+  libero_checkout: assets/vendor/libero
+  libero_repository: https://github.com/Lifelong-Robot-Learning/LIBERO.git
+  libero_commit: 8f1084e3132a39270c3a13ebe37270a43ece2a01
+  libero_license: MIT
+  bddl_file: bddl_files/libero_spatial/pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate.bddl
+  bddl_sha256: 5e19880ebc844f86b89f63b172aab0b7a89f85b6e6955891f544f0ea7d0795d5
+  package: robosuite
+  version: 1.5.2
+  object_body: cookies_1_main
+  goal_body: plate_1_main
+  robot_base_position_m: [-0.42, 0.0, 0.90]
+  policy_camera: agentview
+  predicate: On(cookies_1, plate_1)
+provenance_overrides:
+  derived_task_id: {source: benchmark-defined, 说明: '非官方 LIBERO benchmark task，仅作 PiPER-X expert smoke'}
+  instruction: {source: benchmark-defined, 说明: '与派生 target/predicate 一致'}
+  robot_base_position_m: {source: benchmark-defined, 说明: 'PiPER-X 工作空间适配'}
+  object_body: {source: source-derived, ref: 'locked LIBERO scene cookies_1'}
+  goal_body: {source: source-derived, ref: 'locked LIBERO scene plate_1'}
+  predicate: {source: benchmark-defined, 说明: '派生 smoke 的成功语义'}

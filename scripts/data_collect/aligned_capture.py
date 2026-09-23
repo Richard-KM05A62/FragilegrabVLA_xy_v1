@@ -9,6 +9,8 @@ the same computer ``time.monotonic_ns`` clock domain at data arrival.
 from __future__ import annotations
 
 import ctypes
+import importlib.metadata
+import inspect
 import json
 import os
 import queue
@@ -21,8 +23,6 @@ from pathlib import Path
 from typing import Any, Generic, Iterator, TextIO, TypeVar
 
 import numpy as np
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
-from pyAgxArm import AgxArmFactory, create_agx_arm_config
 
 
 FPS = 30
@@ -403,10 +403,26 @@ class OrbbecDaBaiDC1Adapter(CameraAdapter):
 class PiperCanAdapter:
     """Piper CAN reader integrated here; it never enables or commands the arm."""
 
-    def __init__(self, gripper_open_width_m: float = DEFAULT_GRIPPER_OPEN_WIDTH_M) -> None:
+    def __init__(
+        self,
+        gripper_open_width_m: float = DEFAULT_GRIPPER_OPEN_WIDTH_M,
+        *,
+        channel: str = "0",
+        interface: str = "agx_cando",
+    ) -> None:
+        try:
+            from pyAgxArm import AgxArmFactory, create_agx_arm_config
+        except ImportError as exc:
+            raise RuntimeError(
+                "Piper CAN input requires the validated pyAgxArm package in this Python environment"
+            ) from exc
         self._gripper_open_width_m = gripper_open_width_m
+        try:
+            self._pyagxarm_version = importlib.metadata.version("pyAgxArm")
+        except importlib.metadata.PackageNotFoundError:
+            self._pyagxarm_version = "installed version unavailable from package metadata"
         cfg = create_agx_arm_config(
-            robot="piper_x", comm="can", channel="0", interface="agx_cando"
+            robot="piper_x", comm="can", channel=channel, interface=interface
         )
         self._robot = AgxArmFactory.create_arm(cfg)
         self._effector: Any | None = None
@@ -416,10 +432,15 @@ class PiperCanAdapter:
         if not self._robot.is_connected() or not self._robot.is_ok():
             raise RuntimeError("CAN connection was established but Piper is not healthy")
         self._effector = self._robot.init_effector(self._robot.OPTIONS.EFFECTOR.AGX_GRIPPER)
+        # Feedback caches can still be empty immediately after connect.  Startup
+        # metadata is diagnostic only; read_state() below remains strict about
+        # receiving complete six-axis and gripper feedback before control starts.
+        arm_status = self._robot.get_arm_status()
         return {
+            "pyagxarm_version": self._pyagxarm_version,
             "firmware": self._robot.get_firmware(),
             "joint_enabled_at_start": [self._robot.get_joint_enable_status(i) for i in range(1, 7)],
-            "arm_status_at_start": repr(self._robot.get_arm_status().msg),
+            "arm_status_at_start": repr(arm_status.msg) if arm_status is not None else None,
         }
 
     def read_state(self) -> TimedValue[ArmState]:
@@ -628,6 +649,13 @@ class LeRobotAlignedEpisodeWriter:
         self.frame_count = 0
 
     def _create(self, first: AlignedObservation) -> None:
+        try:
+            try:
+                from lerobot.datasets.lerobot_dataset import LeRobotDataset
+            except ImportError:
+                from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+        except ImportError as exc:
+            raise RuntimeError("Writing a LeRobot episode requires lerobot in this Python environment") from exc
         if self.root.exists():
             raise FileExistsError(f"Dataset root already exists: {self.root}")
         self.root.parent.mkdir(parents=True, exist_ok=True)
@@ -665,16 +693,17 @@ class LeRobotAlignedEpisodeWriter:
             raise ValueError("D435i resolution changed within an episode")
         if observation.wrist_rgb.shape != tuple(self.dataset.features["observation.images.wrist"]["shape"])[1:] + (3,):
             raise ValueError("DaBai DC1 resolution changed within an episode")
-        self.dataset.add_frame(
-            {
-                "observation.images.base": observation.base_rgb,
-                "observation.images.wrist": observation.wrist_rgb,
-                "observation.state": observation.arm_state.astype(np.float32, copy=False),
-                "action": action.astype(np.float32, copy=False),
-                "task": self.task,
-                # Omit timestamp: this LeRobot revision creates frame_index / FPS itself.
-            }
-        )
+        frame = {
+            "observation.images.base": observation.base_rgb,
+            "observation.images.wrist": observation.wrist_rgb,
+            "observation.state": observation.arm_state.astype(np.float32, copy=False),
+            "action": action.astype(np.float32, copy=False),
+            # Omit timestamp: LeRobot creates frame_index / FPS itself.
+        }
+        if "task" in inspect.signature(self.dataset.add_frame).parameters:
+            self.dataset.add_frame(frame, task=self.task)
+        else:
+            self.dataset.add_frame({**frame, "task": self.task})
         assert self.raw_log is not None
         self.raw_log.write(
             json.dumps(

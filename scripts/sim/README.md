@@ -1,6 +1,6 @@
 # Isaac Sim 6.1.0 最小仿真入口
 
-本目录实现当前优先的 **policy-free instrumented episode**。它加载已经准备好的 USD 场景，验证实际 Isaac Sim 版本、physics backend、stage 单位和 Piper X DOF 顺序，执行配置中的关节位置目标，并记录双 RGB、robot state、object state、contact、动作、视频和 episode manifest。它不运行 π0.5，不生成自主抓取轨迹，也不判断抓取是否成功。
+本目录实现 Isaac 支线的 **policy-free instrumented episode**。该支线当前暂停，不是 LIBERO-derived MuJoCo 主线的前置。如项目成员明确重启，它会加载已准备的 USD 场景，验证 Isaac Sim 版本、physics backend、stage 单位和 Piper X DOF 顺序，执行配置中的关节位置目标，并记录双 RGB、robot state、object state、contact、动作、视频和 episode manifest。它不运行 π0.5，不生成自主抓取轨迹，也不判断抓取是否成功。
 
 ## 文件
 
@@ -40,7 +40,7 @@ v0.1 runner 要求 `max_physics_steps` 能被 observation 周期整除，并要�
 
 ## Piper X 资产准备
 
-优先检查并锁定 [`agilexrobotics/piper_isaac_sim` 的 `USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd)、commit 和许可证。已检查的 2025-12-10 仓库头提交为 `8e1f88fdb7afca49c40e9a0c1c01cc588e86f0d2`；实际下载时仍记录解析到的 commit 和文件 SHA-256。若官方 USD 在 6.1.0 验证失败，才退回历史 `agx_datacollect_ws` 资产，并从 [`piper_x_agx_history_candidate_v0.1.yaml`](../../assets/manifests/piper_x_agx_history_candidate_v0.1.yaml) 所记 commit 取得 URDF、Xacro 和 meshes。
+优先检查并锁定 [`agilexrobotics/piper_isaac_sim` 的 `USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd)、commit 和许可证。已检查的 2025-12-10 仓库头提交为 `8e1f88fdb7afca49c40e9a0c1c01cc588e86f0d2`；实际下载时仍记录解析到的 commit 和文件 SHA-256。历史 `agx_datacollect_ws` Candidate manifest 已退出当前主线；若重启 Isaac 且官方 USD 在 6.1.0 验证失败，必须为后备 URDF/Xacro/meshes 重新建立可追踪 manifest，不依赖已删除文件。
 
 历史 `piper_x_description.urdf` 只有六轴机械臂；带夹爪文件是 Xacro。Isaac Sim 6.1.0 `URDFImporter` 只接收 `.urdf`，因此必须在匹配的 ROS/Xacro 环境先展开文件，并记录 Xacro/ROS 版本和展开后 SHA-256。示意命令如下，其中路径由运行者按资产挂载位置填写：
 
@@ -133,6 +133,24 @@ python3 scripts/sim/validate_episode.py <output-root>/<episode-id>
 外部包内部使用相对 USD 引用，解压后只需修改本地 config 的包根路径。首个移交基线应固定 seed 和脚本动作，不做 domain randomization；复现通过后再把随机化参数作为显式实验输入加入。
 
 ## 后续接入 π0.5 前仍需准备
+
+PiPER-X 首任务的纯几何 demonstration 直接写入 U 盘。先运行前 3 条做双视角人工验收：
+
+```bash
+env -u PYTHONPATH MUJOCO_GL=egl \
+  .venv-mujoco/bin/python scripts/sim/run_gentle_smoke_3_to_usb.py \
+  --limit 3 --run-name cookies_task01_review_3ep
+```
+
+人工确认三条抓放与画面正常后，运行同一入口的完整 12 条配额：
+
+```bash
+env -u PYTHONPATH MUJOCO_GL=egl \
+  .venv-mujoco/bin/python scripts/sim/run_gentle_smoke_3_to_usb.py \
+  --run-name cookies_task01_12ep_v01
+```
+
+该入口保存 `640×480` front/wrist MJPEG 审查视频与 20 Hz `samples.jsonl.gz`，state/action 均使用七维 Piper 契约。闭夹宽度、放置高度和阶段时长由几何配置固定；contact/force 只做事后诊断记录，不参与动作、停止或成功判定。前 3 条未全部通过且未完成人工双视角审核前，不运行 12 条配额。
 
 当前仿真 episode 可以作为 observation/execution/evaluation 的数据边界。接入 π0.5 仿真推理前还缺：
 

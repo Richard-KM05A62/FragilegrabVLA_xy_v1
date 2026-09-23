@@ -1,0 +1,12 @@
+# 已实测 Python 3.12；与 OpenPI / Isaac Sim 环境分开。
+mujoco==3.3.7
+robosuite==1.5.2
+numpy==1.26.4
+scipy==1.17.1
+opencv-python==4.11.0.86
+PyYAML==6.0.3
+pytest==9.1.1
+msgpack==1.1.1
+websockets==15.0.1
+trimesh==4.8.3
+pycollada==0.9.2

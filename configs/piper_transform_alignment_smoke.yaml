@@ -1,0 +1,8 @@
+schema_version: fragilegrab.piper_transform_alignment_config/0.1
+values:
+  contract_id: piper_x_joint_position_dual_rgb_v0.3
+  norm_stats_id: piper_x_workflow_smoke_v0.1
+  # MuJoCo 官方 PiPER-X 模型的当前 home/reset state；第七维是 closure。
+  state: [0.0, 0.2, -0.3, 0.0, 0.1, 0.0, 0.0]
+  joint_probe_rad: 0.05
+  gripper_closures: [0.0, 0.5, 1.0]

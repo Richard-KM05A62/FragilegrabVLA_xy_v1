@@ -1,0 +1,34 @@
+schema_version: fragilegrab.pi05_rollout/0.1
+
+openpi_commit: 215abfb217dbac7d5f1273282331b9b1866c0479
+openpi_interface_base_commit: 15a9616a00943ada6c20a0f158e3adb39df2ccac
+model: pi05_base
+contract_id: piper_x_joint_position_dual_rgb_v0.3
+norm_stats_id: piper_x_mujoco_scripted_calibration_v0.1
+model_action_dim: 32
+action_horizon: 50
+max_token_len: 200
+sample_steps: 10
+
+task: F1
+prompt: pick up the object from the table
+
+# 20 Hz control: 5 actions/query * 30 queries = 150 actions = 7.5 s maximum.
+# The policy receives a fresh base+wrist observation after each 0.25 s prefix.
+# MuJoCo-only diagnostic: preserve every raw proposal in the timeline, then
+# saturate it to actuator ranges / rate bounds so an out-of-range gripper
+# scalar does not abort the behavior study.
+execution_mode: diagnostic_projection
+execution_horizon: 5
+control_steps_per_action: 25
+max_policy_queries: 30
+stop_on_task_success: true
+
+max_joint_delta_rad: 0.05
+# Zero-shot control diagnosis: allow any range-valid gripper target in one
+# 20 Hz step.  The gripper actuator range (0..0.05 m) is still enforced.
+max_gripper_delta_m: 0.05
+
+# Diagnostic stop conditions, not fragile-material thresholds.
+diagnostic_stop_contact_force_N: 10.0
+stop_on_unintended_collision: true

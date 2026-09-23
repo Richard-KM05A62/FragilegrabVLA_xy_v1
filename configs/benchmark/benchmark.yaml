@@ -1,0 +1,61 @@
+# provenance 对 values 所有叶子生效；覆写项在 provenance_overrides 明列。
+provenance: benchmark-defined
+说明: v0.1 工程诊断配置；阈值不是玻璃断裂常数。所有时间均为仿真秒。
+values:
+  version: fragilemanip/0.1
+  seed: 7
+  physics_dt_s: 0.002
+  control_steps: 25
+  render_every_steps: 25
+  resolution_hw: [240, 320]
+  # MuJoCo znear 乘以 scene extent 得到实际近裁剪距离；0.001 在当前场景约为 1 cm。
+  render_znear_extent_fraction: 0.001
+  camera: piper_global
+  global_camera:
+    name: piper_global
+    # 固定世界坐标诊断视角；由 reset 构型人工审核后固化，不跟踪目标物体。
+    position_m: [0.42, -0.46, 1.27]
+    xyaxes: [0.6770565308, 0.7359310118, 0.0, -0.2451212734, 0.2255115715, 0.9428998316]
+    fovy_deg: 48.0
+  wrist_camera:
+    name: piper_wrist
+    parent_body: link6
+    source_frame: camera_color_optical_frame
+    # 外参从官方 PiPER-X+D435 固定关节链及 D435 xacro 的彩色光学帧解析；fovy 是仿真 Candidate。
+    fovy_deg: 58.0
+  settle_s: 1.0
+  phase_s: 2.0
+  hold_s: 1.0
+  grasp_offset_m: [0.0, 0.0, 0.04]
+  wrist_rotation_world: [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]
+  video_fourcc: mp4v
+  preview_fourcc: VP80
+  lift_m: 0.08
+  reach_tolerance_m: 0.025
+  lift_success_m: 0.04
+  slip_relative_m: 0.025
+  drop_height_m: 0.015
+  contact_epsilon_N: 0.0001
+  transport_offset_m: [0.0, -0.08, 0.0]
+  place_tolerance_m: 0.04
+  force_thresholds_N: [1.0, 5.0, 10.0]
+  impulse_thresholds_Ns: [0.1, 1.0, 10.0]
+  static_tolerance_rad_m: 0.01
+  tracking_tolerance_rad: 0.03
+  gripper_tolerance_m: 0.003
+  gripper_probe_s: 3.0
+  joint_probe_delta_rad: 0.1
+  ik_max_nfev: 300
+  ik_tolerance_m: 0.005
+  ik_orientation_weight: 0.1
+  joint_limit_margin: 0.000001
+  policy: pi05_base
+  policy_enabled: false
+  action_mapping: TBD
+  randomization_enabled: false
+provenance_overrides:
+  camera: {source: benchmark-defined, 说明: '固定世界坐标全局 RGB，不跟踪目标'}
+  global_camera: {source: benchmark-defined, 说明: '根据 PiPER-X reset 几何计算 look-at 后人工审核并固化'}
+  wrist_camera: {source: source-derived, 说明: '外参来自 AgileX 官方 PiPER-X + D435 固定关节链；fovy 为 benchmark-defined Candidate'}
+  render_znear_extent_fraction: {source: benchmark-defined, 说明: '避免腕部相机附近的夹爪和物体被 near plane 裁掉'}
+  seed: {source: benchmark-defined, 说明: 固定种子；当前没有启用随机化}

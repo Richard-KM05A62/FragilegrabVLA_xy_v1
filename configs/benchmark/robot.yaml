@@ -1,0 +1,56 @@
+provenance: source-derived
+说明: AgileX 官方 agx_arm_sim 锁定的 PiPER-X + D435 URDF/USD 派生 MuJoCo 模型；视觉网格、相机支架与外参来自官方资产，不宣称真机计量等价。
+values:
+  model: piper_x
+  source_format: agx_arm_sim_combined_urdf
+  repository: https://github.com/agilexrobotics/agx_arm_sim.git
+  commit: f8cd8b147c75d59e14f90fb0646770eefa268ed0
+  urdf_submodule: agx_arm_description/agx_arm_urdf
+  urdf_submodule_commit: 1ee5659d02b33b9379fd647a2e5647800d67f0f4
+  combined_urdf: agx_arm_description/urdf/piper_x_gripper_d435.urdf
+  combined_urdf_sha256: efccdf9871c199e78d9981f5020b6ee776a56bf3d258eecca1aa0255e7422824
+  isaac_usd: agx_arm_description/urdf/USD/piper_x_gripper_d435/configuration/piper_x_gripper_d435_base.usd
+  isaac_usd_sha256: 0745992afe955862c7d013db5426b456d502367f7fe0ea8f241ff0f7fadc5f0a
+  official_mjcf_converter: agx_arm_description/scripts/urdf_to_mjcf.py
+  official_mjcf_converter_sha256: ca66ae0373925fc530693818ea6647c035b00fbdc2fae5f2a0e115b231c85ff4
+  camera_stand_mesh: agx_arm_description/meshes/realsense_mid_stand.dae
+  camera_stand_mesh_sha256: 1b9253505836723353528b41c7008c4d8f539a774959da3ad9669c26ae62e45a
+  d435_mesh: realsense2_description/meshes/d435.dae
+  d435_mesh_sha256: 42f3b66f47a1f8f425a2e4dc07c1d9c283183167d8441f520a15623d98f9bf78
+  license: MIT
+  arm_joints: [joint1, joint2, joint3, joint4, joint5, joint6]
+  finger_joints: [gripper_joint1, gripper_joint2]
+  actuators: [joint1, joint2, joint3, joint4, joint5, joint6, gripper]
+  finger_bodies: [gripper_link1, gripper_link2]
+  wrist_body: link6
+  camera_frame: camera_link
+  camera_sensor_frame: camera_color_optical_frame
+  camera_color_offset_camera_link_m: [0.0, 0.015, 0.0]
+  camera_optical_rpy_camera_link: [-1.5707963267948966, 0.0, -1.5707963267948966]
+  camera_fixed_joints:
+    gripper_base_joint: {parent: link6, child: gripper_base, xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 1.5707963]}
+    camera_stand_joint: {parent: gripper_base, child: camera_stand_link, xyz: [-0.034, -0.001, 0.022], rpy: [0.0, 0.0, 0.0]}
+    d435_camera_joint: {parent: camera_stand_link, child: d435_camera_link, xyz: [-0.031, -0.028, 0.0018], rpy: [0.0, -1.22, 0.0]}
+    camera_joint: {parent: d435_camera_link, child: camera_bottom_screw_frame, xyz: [0.0, 0.0, 0.0], rpy: [0.0, 0.0, 0.0]}
+    camera_link_joint: {parent: camera_bottom_screw_frame, child: camera_link, xyz: [0.010600000000000002, 0.0175, 0.0125], rpy: [0.0, 0.0, 0.0]}
+  home_key: home
+  home_qpos: [0.0001399918, 1.5588815164, -1.1359681990, 1.2349752535, 0.0, -1.5706562487, 0.05, -0.05]
+  actuator_kp: [80.0, 80.0, 80.0, 40.0, 10.0, 10.0, 40.0]
+  actuator_kv: [5.0, 5.0, 5.0, 5.0, 1.5, 1.5, 5.0]
+  joint_frictionloss: 0.3
+  joint_armature: 0.005
+  body_gravcomp: 1.0
+  gripper_actuator_open_m: 0.05
+  gripper_actuator_closed_m: 0.0
+  grasp_reference: distal_collision_centers
+provenance_overrides:
+  camera_sensor_frame: {source: source-derived, ref: 'realsense2_description/urdf/_d435.urdf.xacro camera_color_optical_frame'}
+  camera_color_offset_camera_link_m: {source: source-derived, ref: 'official D435 depth-to-color offset'}
+  camera_optical_rpy_camera_link: {source: source-derived, ref: 'official D435 color optical joint'}
+  home_qpos: {source: benchmark-defined, 说明: '固定 F1 工作位 Candidate，使官方夹爪中部 D435 在 reset 时看见工作区；不代表真机回零位'}
+  actuator_kp: {source: benchmark-defined, 说明: '仅供 MuJoCo 位置执行器，待真机标定'}
+  actuator_kv: {source: benchmark-defined, 说明: '仅供 MuJoCo 位置执行器，待真机标定'}
+  joint_frictionloss: {source: benchmark-defined, 说明: '数值稳定化，待真机标定'}
+  joint_armature: {source: benchmark-defined, 说明: '数值稳定化，待真机标定'}
+  body_gravcomp: {source: benchmark-defined, 说明: '仿真位置执行器的重力补偿，不代表被动机械特性'}
+  gripper_actuator_open_m: {source: source-derived, ref: 'official finger joint ranges +0.05/-0.05 m'}

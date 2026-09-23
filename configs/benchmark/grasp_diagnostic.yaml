@@ -1,0 +1,14 @@
+provenance: benchmark-defined
+说明: zero-shot 抓取趋势 L0–L6 诊断阈值；只解释仿真测量，不干预控制。
+values:
+  approach_progress_m: 0.05
+  pregrasp_distance_m: 0.10
+  alignment_tolerance_deg: 35.0
+  desired_tool_z_world: [0.0, 0.0, -1.0]
+  close_start_closure: 0.20
+  close_near_object_distance_m: 0.10
+  contact_epsilon_N: 0.0001
+  lift_attempt_m: 0.01
+  stable_lift_m: 0.04
+  stable_lift_hold_s: 0.25
+  trace_period_s: 0.05

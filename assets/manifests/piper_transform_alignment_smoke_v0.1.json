@@ -1,0 +1,18 @@
+{
+  "schema_version": "fragilegrab.evidence_manifest/0.1",
+  "evidence_id": "piper_transform_alignment_smoke_v0.1",
+  "status": "transport_only_math_pass",
+  "openpi_reference_commit": "15a9616a00943ada6c20a0f158e3adb39df2ccac",
+  "contract_id": "piper_x_joint_position_dual_rgb_v0.3",
+  "norm_stats_id": "piper_x_workflow_smoke_v0.1",
+  "normalization_purpose": "transport_only",
+  "checks": {
+    "joint1_to_joint6_negative_zero_positive_probe": "passed",
+    "delta_quantile_roundtrip_absolute_restore": "passed",
+    "gripper_closure_to_meter_direction": "passed",
+    "model_32d_padding_to_7d_slice": "passed"
+  },
+  "runtime_artifact": "outputs/piper_transform_alignment_smoke.json",
+  "runtime_artifact_sha256": "1d34708c118f7c51ecebf63a82b5f5261948a0c00965a530a52f2219e882fe1e",
+  "limitation": "只验证 transport-only smoke stats 下的变换代数和项目映射；未验证统计分布或训练 action convention，不允许执行策略输出。"
+}

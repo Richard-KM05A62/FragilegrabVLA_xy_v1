@@ -1,0 +1,47 @@
+version: piper_mujoco_teleop/0.1
+
+# pyAgxArm is read-only in this pipeline: connect, joint feedback, gripper feedback, disconnect.
+reader:
+  can_channel: "0"
+  can_interface: agx_cando
+  gripper_open_width_m: 0.1001
+  first_sample_timeout_s: 5.0
+  max_sample_age_ms: 100.0
+
+# The reader, control/physics, and render/record clocks are deliberately independent.
+loops:
+  read_hz: 80.0
+  control_hz: 40.0
+  render_hz: 25.0
+
+mapping:
+  startup_alignment:
+    # configured_mapping keeps the benchmark home; real_absolute copies the
+    # operator-prepositioned real q1..q6/gripper into MuJoCo qpos and ctrl at reset.
+    mode: configured_mapping
+  joints:
+    # target_i = sign_i * scale_i * real_q_i + offset_i, then clamp and filter.
+    # This candidate maps real mechanical zero to the benchmark MuJoCo home pose.
+    # Calibrate these values on the actual leader before collecting training data.
+    sign: [1, 1, 1, 1, 1, 1]
+    scale: [1, 1, 1, 1, 1, 1]
+    offset_rad: [0.0001399918, 1.5588815164, -1.1359681990, 1.2349752535, 0.0, -1.5706562487]
+    limits_rad:
+      - [-2.61799, 2.61799]
+      - [0.0, 3.14159]
+      - [-2.96706, 0.0]
+      - [-1.5708, 1.5708]
+      - [-1.5708, 1.5708]
+      - [-2.0944, 2.0944]
+  gripper:
+    input: pyagxarm_normalized_closedness
+    input_closedness_limits: [0.0, 1.0]
+    sim_open_m: 0.05
+    sim_closed_m: 0.0
+    limits_m: [0.0, 0.05]
+  smoothing:
+    enabled: true
+    alpha: 0.35
+
+recording:
+  repo_id: local/fragilegrab_piper_mujoco_teleop

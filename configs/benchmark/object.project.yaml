@@ -1,0 +1,15 @@
+provenance: source-derived
+说明: 项目原始 robosuite table/bread 工程诊断场景；仅用于与 LIBERO-derived scene 做 zero-shot 对照。
+values:
+  package: robosuite
+  version: 1.5.2
+  arena_provider: robosuite
+  arena_xml: models/assets/arenas/table_arena.xml
+  object_xml: models/assets/objects/bread.xml
+  object_body: target
+  robot_base_position_m: [-0.3, 0.0, 0.8]
+  object_position_m: [0.0, 0.0, 0.85]
+provenance_overrides:
+  object_body: {source: benchmark-defined, 说明: '组合时唯一命名'}
+  robot_base_position_m: {source: benchmark-defined, 说明: '桌面上的安装位置'}
+  object_position_m: {source: benchmark-defined, 说明: '初始投放位置；reset 后静置'}

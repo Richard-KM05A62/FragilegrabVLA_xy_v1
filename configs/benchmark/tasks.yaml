@@ -1,0 +1,29 @@
+provenance: benchmark-defined
+values:
+  qualification:
+    status: implemented
+    instruction: 接近物体，抓起，搬运到相邻位置并放下。
+    phases: [reach, pick, transport, place]
+    success: reach 距离达标，双指接触离桌并保持，搬运到目标，再释放并稳定落桌；必须按顺序通过。
+  F1:
+    status: implemented
+    name: Gentle Lift
+    instruction: 轻轻抓起物体并保持。
+    phases: [reach, pick, hold]
+    success: 相对静置后初始高度升高达到阈值、双指接触且连续保持达到 hold_s。
+  F2:
+    status: TBD
+    name: Safe Transport
+    risk: 搬运速度、滑移和掉落
+  F3:
+    status: TBD
+    name: Gentle Placement
+    risk: 放置冲击
+  F4:
+    status: TBD
+    name: Constrained Placement
+    risk: 有限间隙、非预期侧碰；RoboCasa 资产选择 TBD
+  F5:
+    status: TBD
+    name: Cluttered Retrieval
+    risk: 干扰物碰撞和连带损伤；RoboCasa 资产选择 TBD

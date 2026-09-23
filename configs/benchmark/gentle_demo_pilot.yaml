@@ -1,0 +1,119 @@
+provenance: benchmark-defined
+说明: LIBERO-Spatial 锁定场景中 cookies box 到 plate 的首任务 12 条纯几何抓放；先用前 3 条人工验收，通过后采集全部配额。
+values:
+  schema_version: fragilegrab.geometric_demo_pilot/0.2
+  derived_task_id: libero_spatial_derived_cookies_to_plate
+  instruction: Pick up the cookies box and place it on the plate
+  source_object_body: cookies_1_main
+  goal_body: plate_1_main
+  resolution_hw: [480, 640]
+  video_fourcc: MJPG
+  video_extension: avi
+  control_hz: 20
+  pregrasp_clearance_m: 0.12
+  grasp_reference_height_m: 0.04
+  lift_clearance_m: 0.15
+  gripper_closed_target_m: 0.008
+  placement_reference_above_goal_m: 0.061
+  move_duration_s: 2.5
+  close_duration_s: 1.5
+  close_hold_s: 0.5
+  release_duration_s: 1.5
+  post_release_hold_s: 1.0
+  settled_pose_xy_tolerance_m: 0.003
+  goal_xy_tolerance_m: 0.06
+  goal_z_offset_m: 0.020
+  goal_z_tolerance_m: 0.012
+  final_object_speed_tolerance_m_s: 0.05
+  final_upright_cosine_min: 0.95
+  minimum_lift_m: 0.05
+  upright_cosine_min: 0.98
+  variations:
+    - id: left_front_to_right_back
+      seed: 101
+      source_xy_m: [0.04, -0.10]
+      goal_xy_m: [-0.04, 0.20]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: -0.08
+    - id: right_front_to_left_back
+      seed: 102
+      source_xy_m: [0.04, 0.08]
+      goal_xy_m: [0.04, -0.10]
+      object_yaw_rad: -0.5235987755982988
+      wrist_yaw_rad: -0.5235987755982988
+      robot_joint1_reset_delta_rad: 0.06
+    - id: center_right_to_center_back
+      seed: 103
+      source_xy_m: [0.06, -0.04]
+      goal_xy_m: [0.02, 0.16]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: 0.0
+    - id: near_right_to_far_left
+      seed: 104
+      source_xy_m: [0.02, -0.12]
+      goal_xy_m: [-0.04, 0.20]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: -0.04
+    - id: center_to_lower_right
+      seed: 105
+      source_xy_m: [0.02, 0.06]
+      goal_xy_m: [0.04, -0.12]
+      object_yaw_rad: -0.5235987755982988
+      wrist_yaw_rad: -0.5235987755982988
+      robot_joint1_reset_delta_rad: 0.04
+    - id: upper_right_to_lower_right
+      seed: 106
+      source_xy_m: [0.05, 0.09]
+      goal_xy_m: [0.02, -0.10]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: 0.10
+    - id: lower_center_to_upper_right
+      seed: 107
+      source_xy_m: [0.02, -0.13]
+      goal_xy_m: [0.02, 0.16]
+      object_yaw_rad: -0.5235987755982988
+      wrist_yaw_rad: -0.5235987755982988
+      robot_joint1_reset_delta_rad: -0.10
+    - id: right_center_to_upper_left
+      seed: 108
+      source_xy_m: [0.06, 0.02]
+      goal_xy_m: [-0.04, 0.20]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: 0.06
+    - id: lower_right_to_upper_right
+      seed: 109
+      source_xy_m: [0.05, -0.12]
+      goal_xy_m: [0.02, 0.16]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: -0.06
+    - id: upper_center_to_lower_far_right
+      seed: 110
+      source_xy_m: [0.02, 0.09]
+      goal_xy_m: [0.04, -0.12]
+      object_yaw_rad: -0.5235987755982988
+      wrist_yaw_rad: -0.5235987755982988
+      robot_joint1_reset_delta_rad: 0.02
+    - id: right_lower_to_upper_left
+      seed: 111
+      source_xy_m: [0.06, -0.04]
+      goal_xy_m: [-0.04, 0.20]
+      object_yaw_rad: 0.0
+      wrist_yaw_rad: 0.0
+      robot_joint1_reset_delta_rad: -0.02
+    - id: right_upper_to_lower_right
+      seed: 112
+      source_xy_m: [0.06, 0.07]
+      goal_xy_m: [0.02, -0.12]
+      object_yaw_rad: -0.5235987755982988
+      wrist_yaw_rad: -0.5235987755982988
+      robot_joint1_reset_delta_rad: 0.08
+provenance_overrides:
+  source_object_body: {source: source-derived, ref: 'locked LIBERO scene cookies_1'}
+  goal_body: {source: source-derived, ref: 'locked LIBERO BDDL plate_1 goal asset'}
+  variations: {source: benchmark-defined, 说明: '首任务显式离散配额；前 3 条用于双视角人工验收'}

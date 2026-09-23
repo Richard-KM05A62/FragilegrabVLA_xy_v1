@@ -1,0 +1,23 @@
+provenance: source-derived
+说明: 默认 canonical scene 为锁定 LIBERO-Spatial 官方任务；保留 arena、furniture、camera、BDDL region placement 与物体集，只用 PiPER-X 替换机器人。
+values:
+  scene_type: libero_task
+  task_id: libero_spatial_pick_black_bowl_table_center_to_plate
+  instruction: Pick the akita black bowl from table center and place it on the plate
+  libero_checkout: assets/vendor/libero
+  libero_repository: https://github.com/Lifelong-Robot-Learning/LIBERO.git
+  libero_commit: 8f1084e3132a39270c3a13ebe37270a43ece2a01
+  libero_license: MIT
+  bddl_file: bddl_files/libero_spatial/pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate.bddl
+  bddl_sha256: 5e19880ebc844f86b89f63b172aab0b7a89f85b6e6955891f544f0ea7d0795d5
+  package: robosuite
+  version: 1.5.2
+  object_body: akita_black_bowl_1_main
+  goal_body: plate_1_main
+  robot_base_position_m: [-0.42, 0.0, 0.90]
+  policy_camera: agentview
+  predicate: On(akita_black_bowl_1, plate_1)
+provenance_overrides:
+  robot_base_position_m: {source: benchmark-defined, 说明: 'PiPER-X 工作空间适配；不改变 LIBERO 物体 region'}
+  object_body: {source: source-derived, ref: 'LIBERO BDDL obj_of_interest'}
+  goal_body: {source: source-derived, ref: 'LIBERO BDDL goal On predicate'}

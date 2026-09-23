@@ -1,0 +1,40 @@
+schema_version: fragilegrab.asset_manifest/0.1
+asset_id: libero_spatial_bowl_to_plate_v0.1
+status: Verified in local MuJoCo compile/reset/render
+source:
+  repository: https://github.com/Lifelong-Robot-Learning/LIBERO.git
+  commit: 8f1084e3132a39270c3a13ebe37270a43ece2a01
+  license: MIT
+  license_sha256: e2885fd30a08381b799c4a33385522b23d637b4051b8f9a7f9f2519944b68ff6
+task:
+  suite: libero_spatial
+  language: Pick the akita black bowl from table center and place it on the plate
+  bddl: libero/libero/bddl_files/libero_spatial/pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate.bddl
+  bddl_sha256: 5e19880ebc844f86b89f63b172aab0b7a89f85b6e6955891f544f0ea7d0795d5
+  source_predicate: On(akita_black_bowl_1, plate_1)
+scene:
+  xml: libero/libero/assets/scenes/libero_tabletop_base_style.xml
+  xml_sha256: bb118118e3e02a0f23295c072d77c5a7c6b44cc773032dc79c17070b4e133f86
+  target_xml_sha256: 18c1074cfa09baea739bb75928f9bd2bd80e22ac18655f6a27f005dbf77ccfda
+  goal_xml_sha256: 72b4de23b2daa3169843b784998c0c3c30a6559c6c85917c6b86e3d39fa241e6
+integration:
+  robot: AgileX PiPER-X + gripper + D435
+  policy_camera: agentview
+  retained:
+    - official arena and textures
+    - official furniture and object XML assets
+    - official BDDL region ranges and seeded placement sampling
+    - official agentview/frontview camera poses
+    - official language instruction and source predicate
+  changed:
+    - LIBERO robot replaced by PiPER-X
+    - robot base pose adapted to the PiPER-X workspace
+    - robosuite 1.4 runtime replaced by native MuJoCo composition under robosuite 1.5.2
+verified_local_audit:
+  date: 2026-09-21
+  mujoco_model: {nq: 47, nu: 7, nbody: 26, ngeom: 224}
+  seeds_reset: [7, 17]
+  base_and_wrist_rgb_nonconstant: true
+limitations:
+  - The original LIBERO Python runtime is not imported because it requires robosuite 1.4.0 and its SingleArmEnv API is absent in project-locked robosuite 1.5.2.
+  - The source On predicate is recorded but the current control-learning rollout still uses the existing grasp-tendency evaluator; formal predicate evaluation remains later work.

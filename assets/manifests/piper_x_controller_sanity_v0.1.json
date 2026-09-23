@@ -1,0 +1,41 @@
+{
+  "schema_version": "fragilegrab.controller_sanity/0.1",
+  "date": "2026-09-19",
+  "robot": "piper_x",
+  "asset": {
+    "agx_arm_sim_commit": "f8cd8b147c75d59e14f90fb0646770eefa268ed0",
+    "agx_arm_urdf_commit": "1ee5659d02b33b9379fd647a2e5647800d67f0f4"
+  },
+  "robot_adapter_sanity": {
+    "status": "passed",
+    "physics_rate_hz": 500.0,
+    "control_rate_hz": 20.0,
+    "action_mapping": [
+      {"index": 0, "actuator": "joint1", "joint": "joint1", "unit": "rad", "positive_probe_observed_delta": 0.10100299673299733, "tracking_error": 0.0010029967329973216},
+      {"index": 1, "actuator": "joint2", "joint": "joint2", "unit": "rad", "positive_probe_observed_delta": 0.10032437917469683, "tracking_error": 0.0003243791746967428},
+      {"index": 2, "actuator": "joint3", "joint": "joint3", "unit": "rad", "positive_probe_observed_delta": 0.10074587465487372, "tracking_error": 0.000745874654873635},
+      {"index": 3, "actuator": "joint4", "joint": "joint4", "unit": "rad", "positive_probe_observed_delta": 0.09993722472336031, "tracking_error": 0.00006277527663978155},
+      {"index": 4, "actuator": "joint5", "joint": "joint5", "unit": "rad", "positive_probe_observed_delta": 0.09649316020989637, "tracking_error": 0.003506839790103633},
+      {"index": 5, "actuator": "joint6", "joint": "joint6", "unit": "rad", "positive_probe_observed_delta": 0.09683205032624764, "tracking_error": 0.003167949673752446},
+      {"index": 6, "actuator": "gripper", "joints": ["gripper_joint1", "gripper_joint2"], "unit": "m", "open_command": 0.05, "close_command": 0.0, "opened_qpos": [0.05, -0.05], "closed_qpos": [4.83602608438171e-10, -5.034910645169959e-10]}
+    ],
+    "ignored_output": "outputs/robot_adapter_sanity_seed7.json",
+    "output_sha256": "305e23aa1bde02bbaf040914b3bb0ce843a0e5e10a19fd97d132f97e293cab6d"
+  },
+  "scripted_f1": {
+    "status": "passed",
+    "task_success": true,
+    "reach": true,
+    "pick": true,
+    "max_lift_m": 0.08005075856073895,
+    "max_bilateral_hold_s": 3.901999999999792,
+    "slip": false,
+    "drop": false,
+    "unintended_collision_events": 0,
+    "trajectory_sha256": "0a545bf49a272adf6c0e535bccd41d4e75ad78cd1ed137326d43ca006fd328db",
+    "timeline_sha256": "0d41c2a921f656f8e0235408dd07b66396bbaec14492c25eb0a1e113e543307b",
+    "ignored_episode": "outputs/scripted_f1_controller_sanity_seed7",
+    "episode_manifest_sha256": "68e06a450b77ef46177c5c726db698b20e5c14842368f5faba732a44b0df632b"
+  },
+  "conclusion": "The shared MuJoCo position-actuator path maps all seven command dimensions as configured and can complete the scripted F1 grasp. This does not validate pi05 action semantics, normalization, zero-shot grasping, or physical-robot calibration."
+}

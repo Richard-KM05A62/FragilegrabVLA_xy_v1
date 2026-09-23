@@ -6,11 +6,11 @@
 
 6.1.0 中旧的 `isaacsim.sensors.physics` 已弃用，新的仿真 instrumentation 应依据官方 [`isaacsim.sensors.experimental.physics`](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/py/source/extensions/isaacsim.sensors.experimental.physics/docs/index.html) 公共接口。该扩展可提供带 simulation time、physics step 和 validity 的 contact、joint state 与 effort 读数。physics backend 尚未确定；尤其 effort 能力可能随 backend 不同，因此必须作为配置与运行证据记录。
 
-## 当前任务
+## Isaac 支线任务（非当前 MuJoCo 主线前置）
 
 第一项仿真任务是 Piper X 对一个物体执行简单抓取。目标是先形成可复现的 observation → π0.5 → action chunk → execution → next observation 闭环，再逐步加入易碎属性实验和评测。
 
-当前优先顺序是先在 6.1.0 中形成不依赖 π0.5 的 instrumented episode，验证 robot/object state、双相机角色、动作记录、接触事件、终止和写盘语义；随后再接入 π0.5 action chunk。仓库已实现 [`scripts/sim/run_instrumented_episode.py`](../scripts/sim/run_instrumented_episode.py)、[`import_piper_urdf.py`](../scripts/sim/import_piper_urdf.py) 和 [`validate_episode.py`](../scripts/sim/validate_episode.py)，但目标机器尚未提供运行证据。Piper X 最终资产 commit、控制增益和实验参数继续保持 TBD。
+如果重启 Isaac 支线，其内部顺序是先在 6.1.0 中形成不依赖 π0.5 的 instrumented episode，验证 robot/object state、双相机角色、动作记录、接触事件、终止和写盘语义；随后再接入 π0.5 action chunk。该顺序不代表 Isaac 是当前 LIBERO-derived MuJoCo 示范采集和 embodiment-adaptation 的前置。仓库已实现 [`scripts/sim/run_instrumented_episode.py`](../scripts/sim/run_instrumented_episode.py)、[`import_piper_urdf.py`](../scripts/sim/import_piper_urdf.py) 和 [`validate_episode.py`](../scripts/sim/validate_episode.py)，但目标机器尚未提供运行证据。Piper X 最终资产 commit、控制增益和实验参数继续保持 TBD。
 
 AgileX 官方公开仓库 [`agilexrobotics/piper_isaac_sim`](https://github.com/agilexrobotics/piper_isaac_sim) 提供 [`USD/piper_x_v1.usd`](https://github.com/agilexrobotics/piper_isaac_sim/blob/master/USD/piper_x_v1.usd) 与 Piper X description，[`agilexrobotics/agx_arm_urdf`](https://github.com/agilexrobotics/agx_arm_urdf) 提供 Piper X URDF/Xacro 与 mesh。两者可作为 Candidate 上游；采用前必须锁定具体 commit，记录许可证、校验值、joint/mesh 引用和 Isaac Sim 6.1.0 导入结果。仓库当前不复制这些大型第三方资产。
 
@@ -38,7 +38,7 @@ HybridVLA 和 DexVLA 可用于核对 VLA 的多相机排列、robot state 归一
 - 运行配置、入口、日志、视频和 episode 输出位置；
 - 一次已通过的 smoke test 记录。
 
-大型 USD、纹理和第三方 robot 资产不直接提交；在 `assets/manifests/` 记录下载来源、版本、许可证、校验值和仓库内期望挂载位置。历史 AGX workspace 中的 Piper X 文件已由 [`piper_x_agx_history_candidate_v0.1.yaml`](../assets/manifests/piper_x_agx_history_candidate_v0.1.yaml) 记录为 Candidate，其带夹爪输入仍需从 Xacro 展开、经 6.1.0 导入并现场核对。
+大型 USD、纹理和第三方 robot 资产不直接提交；在 `assets/manifests/` 记录下载来源、版本、许可证、校验值和仓库内期望挂载位置。历史 AGX workspace Candidate manifest 已退出当前主线；如重启 Isaac 并需要该后备资产，必须重新建立 source commit、license、hash 和 Xacro 展开证据。
 
 ## 已实现的最小闭环接口
 

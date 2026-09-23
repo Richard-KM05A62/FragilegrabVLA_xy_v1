@@ -1,0 +1,24 @@
+schema_version: fragilegrab.pi05_rollout/0.1
+
+# 仅用于真实 MuJoCo observation -> 云端 pi05_base 的 transport-only 检查。
+# execution_permitted=false；不得传给闭环 runner。
+openpi_commit: 215abfb217dbac7d5f1273282331b9b1866c0479
+openpi_interface_base_commit: 15a9616a00943ada6c20a0f158e3adb39df2ccac
+model: pi05_base
+contract_id: piper_x_joint_position_dual_rgb_v0.3
+norm_stats_id: piper_x_workflow_smoke_v0.1
+model_action_dim: 32
+action_horizon: 50
+max_token_len: 200
+sample_steps: 10
+
+task: F1
+prompt: pick up the object from the table
+
+# 以下字段满足共享配置契约，但 transport-only 检查绝不执行这些动作。
+execution_horizon: 2
+control_steps_per_action: 25
+max_policy_queries: 1
+stop_on_task_success: true
+max_joint_delta_rad: 0.20
+max_gripper_delta_m: 0.010
