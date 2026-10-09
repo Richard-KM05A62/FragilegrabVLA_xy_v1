@@ -91,6 +91,17 @@ def test_action_chunk_maps_closure_back_to_meter_actuator() -> None:
     np.testing.assert_allclose(decoded[25:, 6], 0.0)
 
 
+def test_horizon_20_lora_contract() -> None:
+    value = PiperPi05Contract("piper_x_embodiment_norm20_v0_1", action_horizon=20)
+    actions = np.zeros((20, 7))
+    decoded = value.decode_action_chunk_proposal({"actions": actions})
+    assert decoded.shape == (20, 7)
+    expected = metadata()
+    expected["norm_stats_id"] = "piper_x_embodiment_norm20_v0_1"
+    expected["action_horizon"] = 20
+    value.validate_server_metadata(expected)
+
+
 def test_diagnostic_proposal_preserves_out_of_range_values_for_explicit_projection() -> None:
     value = contract()
     actions = np.zeros((50, 7))

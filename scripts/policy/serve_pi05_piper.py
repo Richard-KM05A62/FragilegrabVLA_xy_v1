@@ -30,7 +30,7 @@ ACTION_SEMANTICS = "absolute_joint_position_rad_plus_gripper_closure_0_1"
 
 
 @dataclasses.dataclass(frozen=True)
-class PiperInputs(transforms.DataTransformFn):
+class PiperXInputs(transforms.DataTransformFn):
     """请求字段到 π0.5 标准三图像槽和七维 state。"""
 
     def __call__(self, data: dict) -> dict:
@@ -64,7 +64,7 @@ class PiperInputs(transforms.DataTransformFn):
 
 
 @dataclasses.dataclass(frozen=True)
-class PiperOutputs(transforms.DataTransformFn):
+class PiperXOutputs(transforms.DataTransformFn):
     """去除模型内部 32 维 padding，保留已完成逆变换的七个有效维度。"""
 
     def __call__(self, data: dict) -> dict:
@@ -102,8 +102,8 @@ def create_config(
 
     def piper_transforms(_model_config):
         return transforms.Group(
-            inputs=[PiperInputs(), transforms.DeltaActions(delta_mask)],
-            outputs=[transforms.AbsoluteActions(delta_mask), PiperOutputs()],
+            inputs=[PiperXInputs(), transforms.DeltaActions(delta_mask)],
+            outputs=[transforms.AbsoluteActions(delta_mask), PiperXOutputs()],
         )
 
     return config.TrainConfig(

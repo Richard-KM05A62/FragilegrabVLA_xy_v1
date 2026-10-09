@@ -76,6 +76,7 @@ def main() -> None:
     config_path = args.teleop_config.resolve()
     config = load_teleop_config(config_path)
     loops = config["loops"]
+    visual_cfg = config["visual"]
     reader_cfg = config["reader"]
     recording_cfg = config["recording"]
     for name in ("read_hz", "control_hz", "render_hz"):
@@ -85,6 +86,7 @@ def main() -> None:
         print("Warning: control_hz exceeds read_hz; repeated leader samples are expected.")
 
     docs = load_configs(args.benchmark_config_dir, object_config=args.object_config)
+    docs["benchmark"]["values"]["resolution_hw"] = list(visual_cfg["record_resolution_hw"])
     task = args.task or docs["object"]["values"].get("instruction")
     if not task:
         raise ValueError("task prompt is required")
@@ -100,6 +102,7 @@ def main() -> None:
         args.output,
         str(recording_cfg["repo_id"]),
         int(round(float(loops["render_hz"]))),
+        int(recording_cfg.get("image_writer_threads", 0)),
     )
     seed = args.seed
     read_to_apply: list[int] = []
@@ -169,6 +172,11 @@ def main() -> None:
                 "source": "real_piper_position_teleoperation",
             },
             "observation_state": "sim q1..q6 rad + normalized gripper closedness",
+            "images": {
+                "record_resolution_hw": list(visual_cfg["record_resolution_hw"]),
+                "preview_resolution_hw": list(visual_cfg["preview_resolution_hw"]),
+                "preview_source": "area-downsample of the same recorded MuJoCo render; no second render",
+            },
             "config": {"source_path": str(config_path), "storage_ref": "teleop_config.yaml", "sha256": _sha256(config_path)},
             "reader_start": reader.start_metadata,
         }
@@ -250,8 +258,19 @@ def main() -> None:
                         mapping=mapping_info,
                     )
                 status = "REC" if recorder.active else "IDLE"
-                base = _label(observation["images"]["base_rgb"], f"front | {status} | seed {seed}")
-                wrist = _label(observation["images"]["wrist_rgb"], "wrist")
+                preview_h, preview_w = visual_cfg["preview_resolution_hw"]
+                base_preview = cv2.resize(
+                    observation["images"]["base_rgb"],
+                    (preview_w, preview_h),
+                    interpolation=cv2.INTER_AREA,
+                )
+                wrist_preview = cv2.resize(
+                    observation["images"]["wrist_rgb"],
+                    (preview_w, preview_h),
+                    interpolation=cv2.INTER_AREA,
+                )
+                base = _label(base_preview, f"front | {status} | seed {seed}")
+                wrist = _label(wrist_preview, "wrist")
                 cv2.imshow(window, np.concatenate([base, wrist], axis=1))
                 key = cv2.waitKey(1) & 0xFF
                 next_render += render_period

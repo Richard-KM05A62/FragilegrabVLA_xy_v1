@@ -38,7 +38,7 @@ real data collection              simulation recording
                     evaluation
 ```
 
-近期最小闭环已扩展为 MuJoCo reset → 全局/腕部 RGB observation → π0.5 inference → 50-step action chunk → 前缀执行/重规划 → physics step → evaluator → 日志/视频。严格模式拒绝越界提议；独立的 `diagnostic_projection` 实验模式显式保存原始提议、投影原因和实际动作，仅用于观察未微调模型的 MuJoCo 行为，不构成 Safety Layer。F2–F5 和 RoboCasa 场景不在本阶段实现。
+近期最小闭环已扩展为 MuJoCo reset → 全局/腕部 RGB observation → π0.5 inference → action chunk → 前缀执行/重规划 → physics step → evaluator → 日志/视频。Zero-shot `pi05_base` 保留 50-step chunk，当前 PiPER-X LoRA smoke 使用显式的 20-step chunk，runner 按 rollout config 和 server metadata 双重校验，不在两者间静默转换。严格模式拒绝越界提议；独立的 `diagnostic_projection` 实验模式显式保存原始提议、投影原因和实际动作，仅用于 MuJoCo 行为诊断，不构成 Safety Layer。F2–F5 和 RoboCasa 场景不在本阶段实现。
 
 MuJoCo benchmark 分为两层。**Canonical benchmark** 基于锁定版本的 LIBERO 场景：保留 arena、furniture、camera 和 placement logic，将 robot 替换为 AgileX PiPER-X，target object 替换为有来源的 fragile / fragile-like object，并为新对象和 PiPER-X 工作区重新定义版本化 task predicate。**Safety stress-test benchmark** 只在 canonical scene 基础上生成变体，操作空间宽度、clutter、障碍物距离、摩擦、脆弱参数、质量和接触风险。每个变体必须记录与 canonical config 的差异，不允许以无来源的自建场景取代 LIBERO 基底。
 
@@ -52,11 +52,15 @@ MuJoCo benchmark 分为两层。**Canonical benchmark** 基于锁定版本的 LI
 
 新增的本地 MuJoCo teleoperation 仍将真实 Piper 保持为只读输入：独立 CAN reader 将 q1–q6/夹爪反馈交给配置化 sign/scale/offset、限位和可选低通映射，仅控制本地 MuJoCo 位置执行器。它复用 benchmark environment 的两路 RGB 和七维 action 契约，记录实际提交的 sim target 为训练 action；不向真机发送任何动作，也不构成 Safety Layer。
 
+Teleoperation 图像路径只执行一次高分辨率 MuJoCo render：`640×480` 帧进入数据集，同一帧下采样为 `320×240` 操作预览；π0.5 的最终低分辨率输入由训练/推理 transform 生成。预览、存档与模型输入尺寸因此解耦，但不增加第二次场景渲染。
+
 ### 4.2 数据层
 
 负责 episode schema、manifest、质量检查、数据版本和 OpenPI 所需的数据转换。原始数据、派生数据和训练输入必须能够追溯；转换不能覆盖原始采集证据。
 
-当前微调阶段的目标是 PiPER-X embodiment adaptation。仿真示范从单一稳定 LIBERO-derived 抓放任务采集，normalization 使用实际进入本轮微调的全部训练示范，并在锁定 OpenPI 版本的 Piper data transform 之后计算。数据集版本、transform id、normalization 和微调 checkpoint 必须绑定。正式 train/validation/test split 与 stress-test 数据设计在控制方法跑通后实施。
+当前微调阶段的目标是 PiPER-X embodiment adaptation。最新任务规划锁定 8 个官方 LIBERO 场景派生模板、100 条最终配额（54 scripted + 46 teleop），见 `docs/piper_embodiment_task_plan.md`。首批 20 条改为 5 个官方 BDDL 任务×4 placement seeds，覆盖 bowl-to-plate、object-to-basket、package-to-tray 和 mug-to-plate。在 5 个官方场景均完成 PiPER-X composition 前不生成这 20 条；已禁用单场景小幅坐标扰动版。normalization 使用实际进入本轮微调的全部训练示范，并在锁定 OpenPI 版本的 Piper data transform 之后计算。
+
+当前 scripted provisional 阶段只做最小结构验证：空 episode、非有限值、shape、时间戳、image/state/action 长度、模型硬关节限位和序列化失败可以阻止无效数据进入 LeRobot；结构有效的原始 episode 一律先保存。任务成功、速度、平滑度、抓持、位移、碰撞、力、时长和抬升等只记录为 metric/warning，不自动删除或拒绝。所有未来 QC threshold 集中进入配置且默认关闭；训练 split 的筛选晚于可视化检查与 OpenPI 数据读取验证。
 
 ### 4.3 π0.5
 

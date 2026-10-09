@@ -37,8 +37,8 @@ class PiperPi05Contract:
             raise Pi05ContractError(
                 f"PiPER-X norm_stats_id 必须以 {NORM_STATS_ID_PREFIX!r} 开头"
             )
-        if self.action_horizon != 50:
-            raise Pi05ContractError("当前 pi05_base 基线必须保留 50-step action horizon")
+        if self.action_horizon not in {20, 50}:
+            raise Pi05ContractError("当前只允许 LoRA 20-step 或 pi05_base 50-step action horizon")
         if not self.gripper_open_m > self.gripper_closed_m:
             raise Pi05ContractError("夹爪 open/closed 米制范围无效")
 

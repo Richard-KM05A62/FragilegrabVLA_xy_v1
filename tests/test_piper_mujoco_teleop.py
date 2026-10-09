@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 
-from fragilegrab.benchmark.teleop import LatestLeaderReader, PositionMapper, latency_summary_ms
+from fragilegrab.benchmark.teleop import (
+    LatestLeaderReader,
+    PositionMapper,
+    latency_summary_ms,
+    load_teleop_config,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def mapping_config(alpha: float = 1.0) -> dict:
@@ -73,3 +82,11 @@ def test_latency_summary_reports_mean_and_p95() -> None:
     assert result["samples"] == 3
     assert result["mean_ms"] == 20.0
     assert result["p95_ms"] == 29.0
+
+
+def test_versioned_teleop_config_separates_record_and_preview_resolution() -> None:
+    config = load_teleop_config(ROOT / "configs/teleop/piper_mujoco.yaml")
+    assert config["version"] == "piper_mujoco_teleop/0.2"
+    assert config["visual"]["record_resolution_hw"] == [480, 640]
+    assert config["visual"]["preview_resolution_hw"] == [240, 320]
+    assert config["loops"]["render_hz"] == 20.0

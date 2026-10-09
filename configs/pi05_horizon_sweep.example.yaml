@@ -1,7 +1,0 @@
-schema_version: fragilegrab.pi05_horizon_sweep/0.1
-
-# 仅在 adapter/controller/normalization 审计通过，且 server metadata 明确
-# execution_permitted=true 后运行。每个条件先做少量固定 seed episode。
-base_rollout_config: configs/pi05_mujoco_zero_shot.example.yaml
-execution_horizons: [5, 7, 10, 15, 20]
-seeds: [7, 17, 27]

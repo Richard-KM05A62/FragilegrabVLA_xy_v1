@@ -182,11 +182,22 @@ class PositionMapper:
 
 def load_teleop_config(path: Path) -> dict[str, Any]:
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(config, dict) or config.get("version") != "piper_mujoco_teleop/0.1":
-        raise ValueError("teleop config version must be piper_mujoco_teleop/0.1")
-    for section in ("reader", "loops", "mapping", "recording"):
+    if not isinstance(config, dict) or config.get("version") != "piper_mujoco_teleop/0.2":
+        raise ValueError("teleop config version must be piper_mujoco_teleop/0.2")
+    for section in ("reader", "loops", "visual", "mapping", "recording"):
         if not isinstance(config.get(section), dict):
             raise ValueError(f"missing teleop config section: {section}")
+    for name in ("record_resolution_hw", "preview_resolution_hw"):
+        value = config["visual"].get(name)
+        if (
+            not isinstance(value, list)
+            or len(value) != 2
+            or any(type(item) is not int or item <= 0 for item in value)
+        ):
+            raise ValueError(f"visual.{name} must be [positive height, positive width]")
+    threads = config["recording"].get("image_writer_threads", 0)
+    if type(threads) is not int or threads < 0:
+        raise ValueError("recording.image_writer_threads must be a non-negative integer")
     return config
 
 
@@ -200,10 +211,11 @@ def latency_summary_ms(values_ns: list[int]) -> dict[str, float | int | None]:
 class TeleopEpisodeRecorder:
     """One episode per LeRobot dataset, plus causal timing and reset sidecars."""
 
-    def __init__(self, output_root: Path, repo_id: str, fps: int) -> None:
+    def __init__(self, output_root: Path, repo_id: str, fps: int, image_writer_threads: int = 0) -> None:
         self.output_root = output_root.resolve()
         self.repo_id = repo_id
         self.fps = fps
+        self.image_writer_threads = image_writer_threads
         self.dataset: Any | None = None
         self.episode_dir: Path | None = None
         self.log: TextIO | None = None
@@ -244,7 +256,7 @@ class TeleopEpisodeRecorder:
             return {"dtype": "video", "shape": (3, h, w), "names": ["channels", "height", "width"]}
 
         assert self.episode_dir is not None
-        self.dataset = LeRobotDataset.create(
+        create_kwargs = dict(
             repo_id=self.repo_id,
             fps=self.fps,
             root=self.episode_dir / "lerobot",
@@ -257,6 +269,11 @@ class TeleopEpisodeRecorder:
             },
             use_videos=True,
         )
+        if "image_writer_threads" in inspect.signature(LeRobotDataset.create).parameters:
+            create_kwargs["image_writer_threads"] = self.image_writer_threads
+        elif self.image_writer_threads:
+            raise RuntimeError("installed LeRobot does not support asynchronous image writer threads")
+        self.dataset = LeRobotDataset.create(**create_kwargs)
 
     def append(
         self,

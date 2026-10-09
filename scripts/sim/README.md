@@ -132,25 +132,23 @@ python3 scripts/sim/validate_episode.py <output-root>/<episode-id>
 
 外部包内部使用相对 USD 引用，解压后只需修改本地 config 的包根路径。首个移交基线应固定 seed 和脚本动作，不做 domain randomization；复现通过后再把随机化参数作为显式实验输入加入。
 
+## Scripted provisional LeRobot dataset
+
+最小结构验证的公开入口、字段契约和分阶段运行命令见
+[`docs/scripted_provisional_dataset.md`](../../docs/scripted_provisional_dataset.md)。旧文件名
+`run_gentle_smoke_3_to_usb.py` 保留为兼容入口；新运行统一使用
+`generate_scripted_provisional_dataset.py`。结构有效的轨迹无论任务表现如何都会保存到共同
+LeRobot dataset；表现只进入 metric/warning，后续人工选择 train split。
+
 ## 后续接入 π0.5 前仍需准备
 
-PiPER-X 首任务的纯几何 demonstration 直接写入 U 盘。先运行前 3 条做双视角人工验收：
-
-```bash
-env -u PYTHONPATH MUJOCO_GL=egl \
-  .venv-mujoco/bin/python scripts/sim/run_gentle_smoke_3_to_usb.py \
-  --limit 3 --run-name cookies_task01_review_3ep
-```
-
-人工确认三条抓放与画面正常后，运行同一入口的完整 12 条配额：
-
-```bash
-env -u PYTHONPATH MUJOCO_GL=egl \
-  .venv-mujoco/bin/python scripts/sim/run_gentle_smoke_3_to_usb.py \
-  --run-name cookies_task01_12ep_v01
-```
-
-该入口保存 `640×480` front/wrist MJPEG 审查视频与 20 Hz `samples.jsonl.gz`，state/action 均使用七维 Piper 契约。闭夹宽度、放置高度和阶段时长由几何配置固定；contact/force 只做事后诊断记录，不参与动作、停止或成功判定。前 3 条未全部通过且未完成人工双视角审核前，不运行 12 条配额。
+先按 scripted provisional 手册列出计划，再由操作者显式选择 1 条和四类各 1 条的审核集，
+确认后再决定是否生成全部 24 条。当前配额为 pick、pick-and-place、relocate 和
+container/place 各 6 条；可用 `--task-type` 分批执行。
+该入口同时保存 LeRobot 数据、`640×480` front/wrist MP4 审查视频与 20 Hz
+`samples.jsonl.gz`。闭夹宽度、放置高度和阶段时长由几何配置固定；contact/force 只做
+事后诊断记录，不参与动作、停止或自动数据拒绝。先完成显式审核集的格式、时序、
+LeRobot/OpenPI 读取与双视角检查，再运行 24 条配额。
 
 当前仿真 episode 可以作为 observation/execution/evaluation 的数据边界。接入 π0.5 仿真推理前还缺：
 

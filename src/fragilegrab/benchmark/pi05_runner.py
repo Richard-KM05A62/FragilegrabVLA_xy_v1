@@ -33,17 +33,18 @@ def load_rollout_config(path: Path) -> dict[str, Any]:
         "contract_id": CONTRACT_ID,
         "model": "pi05_base",
         "model_action_dim": 32,
-        "action_horizon": 50,
         "max_token_len": 200,
         "sample_steps": 10,
     }
     for key, expected in required_equal.items():
         if config.get(key) != expected:
             raise ValueError(f"{key} 必须是 {expected!r}")
+    if config.get("action_horizon") not in {20, 50}:
+        raise ValueError("action_horizon 必须是 LoRA 20 或 pi05_base 50")
     for key in ("norm_stats_id", "prompt"):
         if not isinstance(config.get(key), str) or not config[key].strip():
             raise ValueError(f"{key} 必须是非空字符串")
-    PiperPi05Contract(config["norm_stats_id"])
+    PiperPi05Contract(config["norm_stats_id"], action_horizon=config["action_horizon"])
     for key in ("execution_horizon", "max_policy_queries", "control_steps_per_action"):
         if type(config.get(key)) is not int or config[key] <= 0:
             raise ValueError(f"{key} 必须是正整数")
@@ -143,7 +144,9 @@ def run_pi05_episode(
     if not isinstance(seed, int) or not 0 <= seed < 2**32:
         raise ValueError("seed 必须为 uint32 整数")
 
-    contract = PiperPi05Contract(rollout["norm_stats_id"])
+    contract = PiperPi05Contract(
+        rollout["norm_stats_id"], action_horizon=rollout["action_horizon"]
+    )
     contract.validate_server_metadata(policy.metadata)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
@@ -428,7 +431,7 @@ def run_pi05_episode(
                 "server_metadata": policy.metadata,
             },
             "execution": {
-                "action_horizon": 50,
+                "action_horizon": rollout["action_horizon"],
                 "execution_horizon": rollout["execution_horizon"],
                 "control_steps_per_action": rollout["control_steps_per_action"],
                 "control_rate_hz": fps,

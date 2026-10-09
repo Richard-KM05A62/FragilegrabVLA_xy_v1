@@ -13,8 +13,8 @@ observation/image + observation/wrist_image + 7D state + prompt
                 │ WebSocket / msgpack
                 ▼
 OpenPI pi05_base
-  PiperInputs → DeltaActions(first 6 dims) → normalization → model
-  model → unnormalization → AbsoluteActions(first 6 dims) → PiperOutputs(first 7 dims)
+  PiperXInputs → DeltaActions(first 6 dims) → normalization → model
+  model → unnormalization → AbsoluteActions(first 6 dims) → PiperXOutputs(first 7 dims)
                 │ 50×7 action chunk
                 ▼
 PiperPi05Contract
@@ -32,16 +32,16 @@ state/contact/two RGB streams/timeline/video/evaluation
 真实代码路径：
 
 - 仿真 raw observation：`src/fragilegrab/benchmark/environment.py`、`adapters.py::ObservationAdapter`。
-- OpenPI server transform：`scripts/policy/serve_pi05_piper.py::PiperInputs/PiperOutputs/create_config`。
+- OpenPI server transform：`scripts/policy/serve_pi05_piper.py::PiperXInputs/PiperXOutputs/create_config`。
 - 客户端字段与动作反变换：`src/fragilegrab/benchmark/pi05_contract.py::PiperPi05Contract`。
 - chunk broker、执行与日志：`src/fragilegrab/benchmark/pi05_runner.py::run_pi05_episode`。
 - 低层 position actuator：`environment.py::_configure_piper_x_mjcf/step_physics`。
 
 ## 2. Action adapter 的实际语义
 
-`PiperOutputs` 最后取 `[..., :7]` 本身是合理的有效维投影：模型内部使用 32 维 padding，而 Piper 契约只有七个有效维度。只要有效维确实按约定放在前七维，这一步不是风险来源。
+`PiperXOutputs` 最后取 `[..., :7]` 本身是合理的有效维投影：模型内部使用 32 维 padding，而 PiPER-X 契约只有七个有效维度。只要有效维确实按约定放在前七维，这一步不是风险来源。
 
-真正需要审计的是截取之前的语义链：训练数据 action convention → 前六维 delta transform → 与同一契约绑定的 normalization → 模型内部 padded action → inverse normalization → `AbsoluteActions` 依据当前 state 恢复绝对关节目标。第七维不参与 joint delta transform，保持绝对 gripper closure。完成这些 robot-specific transform 后，`PiperOutputs` 才去除 padding；客户端再将 closure 线性映射到夹爪 position actuator。
+真正需要审计的是截取之前的语义链：训练数据 action convention → 前六维 delta transform → 与同一契约绑定的 normalization → 模型内部 padded action → inverse normalization → `AbsoluteActions` 依据当前 state 恢复绝对关节目标。第七维不参与 joint delta transform，保持绝对 gripper closure。完成这些 robot-specific transform 后，`PiperXOutputs` 才去除 padding；客户端再将 closure 线性映射到夹爪 position actuator。
 
 | 有效维 | 服务响应语义 | MuJoCo 目标 | 单位/方向 |
 | --- | --- | --- | --- |

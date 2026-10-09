@@ -29,7 +29,7 @@ for scene in project libero_spatial; do
   fi
   for seed in 7 17 27; do
     output="$output_dir/${scene}_seed${seed}.json"
-    env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
+    env -u PYTHONPATH NUMBA_CACHE_DIR=.local_work/numba-cache MUJOCO_GL=egl \
       "$python_bin" scripts/sim/check_pi05_mujoco_inference.py \
       --robot-assets "$robot_assets" \
       --object-config "$object_config" \

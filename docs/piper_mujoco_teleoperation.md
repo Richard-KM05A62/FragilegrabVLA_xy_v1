@@ -55,7 +55,9 @@ MUJOCO_GL=glfw PYTHONPATH=src .venv-mujoco/bin/python \
   --seed 7
 ```
 
-`MUJOCO_GL=glfw` 需要本地图形桌面。不要用 `egl` 启动交互窗口。默认频率为 read 80 Hz、control 40 Hz、render/record 25 Hz；三者不会被锁为同一个同步频率。
+`MUJOCO_GL=glfw` 需要本地图形桌面。不要用 `egl` 启动交互窗口。默认频率为 read 80 Hz、control 40 Hz、render/record 20 Hz；三者不会被锁为同一个同步频率。
+
+MuJoCo 对每个相机只渲染一次 `640×480` RGB；该原图进入 LeRobot。操作窗口显示同一帧经 area downsample 得到的 `320×240` 预览，不触发第二次 MuJoCo render。LeRobot 使用 4 个异步 image writer thread，编码仍在 episode 结束时完成。训练/推理时由锁定 OpenPI transform 再把图像缩放到模型输入尺寸；存档不预先破坏为低分辨率。
 
 ## 热键
 
@@ -71,7 +73,7 @@ MUJOCO_GL=glfw PYTHONPATH=src .venv-mujoco/bin/python \
 | `R` | reset scene；录制中拒绝 reset |
 | `Q` / `Esc` | 退出；活动中的未完成 episode 会丢弃 |
 
-窗口左侧为第三人称 front，右侧为 wrist。当前版本同时显示两路，没有单路切换模式。
+窗口左侧为第三人称 front，右侧为 wrist。当前版本同时显示两路 `320×240` 预览，没有单路切换模式；数据集中保存的是两路 `640×480` 原始渲染。
 
 ## 输出与检查
 

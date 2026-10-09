@@ -1,14 +1,15 @@
 provenance: benchmark-defined
-说明: LIBERO-Spatial 锁定场景中 cookies box 到 plate 的首任务 12 条纯几何抓放；先用前 3 条人工验收，通过后采集全部配额。
+说明: LIBERO-derived PiPER-X 的 24 条多任务 provisional scripted demonstration；结构有效即保存，任务表现只记录为 metric/warning。
 values:
-  schema_version: fragilegrab.geometric_demo_pilot/0.2
-  derived_task_id: libero_spatial_derived_cookies_to_plate
-  instruction: Pick up the cookies box and place it on the plate
+  schema_version: fragilegrab.scripted_provisional/0.4
+  task_set_id: piper_x_scripted_multitask_24_v0.1
+  dataset_repo_id: local/piper_x_scripted_provisional_multitask_v0_1
+  norm_stats_id: piper_x_scripted_provisional_multitask_v0.1
   source_object_body: cookies_1_main
   goal_body: plate_1_main
   resolution_hw: [480, 640]
-  video_fourcc: MJPG
-  video_extension: avi
+  video_fourcc: mp4v
+  video_extension: mp4
   control_hz: 20
   pregrasp_clearance_m: 0.12
   grasp_reference_height_m: 0.04
@@ -18,102 +19,56 @@ values:
   move_duration_s: 2.5
   close_duration_s: 1.5
   close_hold_s: 0.5
+  lifted_hold_s: 1.5
   release_duration_s: 1.5
   post_release_hold_s: 1.0
-  settled_pose_xy_tolerance_m: 0.003
   goal_xy_tolerance_m: 0.06
   goal_z_offset_m: 0.020
   goal_z_tolerance_m: 0.012
   final_object_speed_tolerance_m_s: 0.05
   final_upright_cosine_min: 0.95
   minimum_lift_m: 0.05
-  upright_cosine_min: 0.98
+  quality_control:
+    # Only structural failures block serialization; metric thresholds stay off.
+    metric_thresholds_enabled: false
+    metric_thresholds: {}
+
+  # Explicit deterministic quotas: 6 of each task type. Only the two object/tool
+  # orientations already exercised by the pilot are used.
   variations:
-    - id: left_front_to_right_back
-      seed: 101
-      source_xy_m: [0.04, -0.10]
-      goal_xy_m: [-0.04, 0.20]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: -0.08
-    - id: right_front_to_left_back
-      seed: 102
-      source_xy_m: [0.04, 0.08]
-      goal_xy_m: [0.04, -0.10]
-      object_yaw_rad: -0.5235987755982988
-      wrist_yaw_rad: -0.5235987755982988
-      robot_joint1_reset_delta_rad: 0.06
-    - id: center_right_to_center_back
-      seed: 103
-      source_xy_m: [0.06, -0.04]
-      goal_xy_m: [0.02, 0.16]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: 0.0
-    - id: near_right_to_far_left
-      seed: 104
-      source_xy_m: [0.02, -0.12]
-      goal_xy_m: [-0.04, 0.20]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: -0.04
-    - id: center_to_lower_right
-      seed: 105
-      source_xy_m: [0.02, 0.06]
-      goal_xy_m: [0.04, -0.12]
-      object_yaw_rad: -0.5235987755982988
-      wrist_yaw_rad: -0.5235987755982988
-      robot_joint1_reset_delta_rad: 0.04
-    - id: upper_right_to_lower_right
-      seed: 106
-      source_xy_m: [0.05, 0.09]
-      goal_xy_m: [0.02, -0.10]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: 0.10
-    - id: lower_center_to_upper_right
-      seed: 107
-      source_xy_m: [0.02, -0.13]
-      goal_xy_m: [0.02, 0.16]
-      object_yaw_rad: -0.5235987755982988
-      wrist_yaw_rad: -0.5235987755982988
-      robot_joint1_reset_delta_rad: -0.10
-    - id: right_center_to_upper_left
-      seed: 108
-      source_xy_m: [0.06, 0.02]
-      goal_xy_m: [-0.04, 0.20]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: 0.06
-    - id: lower_right_to_upper_right
-      seed: 109
-      source_xy_m: [0.05, -0.12]
-      goal_xy_m: [0.02, 0.16]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: -0.06
-    - id: upper_center_to_lower_far_right
-      seed: 110
-      source_xy_m: [0.02, 0.09]
-      goal_xy_m: [0.04, -0.12]
-      object_yaw_rad: -0.5235987755982988
-      wrist_yaw_rad: -0.5235987755982988
-      robot_joint1_reset_delta_rad: 0.02
-    - id: right_lower_to_upper_left
-      seed: 111
-      source_xy_m: [0.06, -0.04]
-      goal_xy_m: [-0.04, 0.20]
-      object_yaw_rad: 0.0
-      wrist_yaw_rad: 0.0
-      robot_joint1_reset_delta_rad: -0.02
-    - id: right_upper_to_lower_right
-      seed: 112
-      source_xy_m: [0.06, 0.07]
-      goal_xy_m: [0.02, -0.12]
-      object_yaw_rad: -0.5235987755982988
-      wrist_yaw_rad: -0.5235987755982988
-      robot_joint1_reset_delta_rad: 0.08
+    - {id: pick_left_front_yaw0, task_type: pick, instruction: "Pick up the cookies box from the left front area and hold it up", seed: 201, source_xy_m: [0.04, -0.10], goal_kind: none, object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.08}
+    - {id: pick_right_front_yawm30, task_type: pick, instruction: "Pick up the cookies box from the right front area and hold it up", seed: 202, source_xy_m: [0.04, 0.08], goal_kind: none, object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.06}
+    - {id: pick_center_near_yaw0, task_type: pick, instruction: "Pick up the cookies box near the center and hold it up", seed: 203, source_xy_m: [0.06, -0.04], goal_kind: none, object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.0}
+    - {id: pick_left_near_yawm30, task_type: pick, instruction: "Pick up the angled cookies box from the near left area and hold it up", seed: 204, source_xy_m: [0.02, -0.12], goal_kind: none, object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: -0.04}
+    - {id: pick_center_far_yaw0, task_type: pick, instruction: "Pick up the cookies box from the far center area and hold it up", seed: 205, source_xy_m: [0.02, 0.06], goal_kind: none, object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.04}
+    - {id: pick_right_far_yawm30, task_type: pick, instruction: "Pick up the angled cookies box from the far right area and hold it up", seed: 206, source_xy_m: [0.05, 0.09], goal_kind: none, object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.10}
+
+    - {id: pick_place_left_front_to_right_back, task_type: pick_and_place, instruction: "Pick up the cookies box from the left front and place it on the right back area of the table", seed: 211, source_xy_m: [0.04, -0.10], goal_kind: tabletop, goal_xy_m: [0.02, 0.16], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.08}
+    - {id: pick_place_right_front_to_left_back, task_type: pick_and_place, instruction: "Pick up the cookies box from the right front and place it on the left back area of the table", seed: 212, source_xy_m: [0.04, 0.08], goal_kind: tabletop, goal_xy_m: [-0.04, 0.20], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.06}
+    - {id: pick_place_center_to_lower_right, task_type: pick_and_place, instruction: "Pick up the cookies box near the center and place it on the lower right area of the table", seed: 213, source_xy_m: [0.06, -0.04], goal_kind: tabletop, goal_xy_m: [0.04, -0.12], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.0}
+    - {id: pick_place_near_to_far, task_type: pick_and_place, instruction: "Pick up the cookies box from the near area and place it on the far area of the table", seed: 214, source_xy_m: [0.02, -0.12], goal_kind: tabletop, goal_xy_m: [0.02, 0.16], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.04}
+    - {id: pick_place_far_to_near, task_type: pick_and_place, instruction: "Pick up the angled cookies box from the far area and place it on the near right area of the table", seed: 215, source_xy_m: [0.02, 0.06], goal_kind: tabletop, goal_xy_m: [0.04, -0.12], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.04}
+    - {id: pick_place_right_far_to_left_far, task_type: pick_and_place, instruction: "Pick up the cookies box from the far right and place it on the far left area of the table", seed: 216, source_xy_m: [0.05, 0.09], goal_kind: tabletop, goal_xy_m: [-0.04, 0.20], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.10}
+
+    - {id: relocate_lower_center_to_upper_right, task_type: relocate, instruction: "Move the cookies box from the lower center to the upper right area", seed: 221, source_xy_m: [0.02, -0.13], goal_kind: tabletop, goal_xy_m: [0.02, 0.16], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: -0.10}
+    - {id: relocate_right_center_to_upper_left, task_type: relocate, instruction: "Move the cookies box from the right center to the upper left area", seed: 222, source_xy_m: [0.06, 0.02], goal_kind: tabletop, goal_xy_m: [-0.04, 0.20], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.06}
+    - {id: relocate_lower_right_to_upper_center, task_type: relocate, instruction: "Move the cookies box from the lower right to the upper center area", seed: 223, source_xy_m: [0.05, -0.12], goal_kind: tabletop, goal_xy_m: [0.02, 0.16], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.06}
+    - {id: relocate_upper_center_to_lower_right, task_type: relocate, instruction: "Move the angled cookies box from the upper center to the lower right area", seed: 224, source_xy_m: [0.02, 0.09], goal_kind: tabletop, goal_xy_m: [0.04, -0.12], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.02}
+    - {id: relocate_center_right_to_upper_left, task_type: relocate, instruction: "Move the cookies box from the center right to the upper left area", seed: 225, source_xy_m: [0.06, -0.04], goal_kind: tabletop, goal_xy_m: [-0.04, 0.20], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.02}
+    - {id: relocate_upper_right_to_lower_center, task_type: relocate, instruction: "Move the angled cookies box from the upper right to the lower center area", seed: 226, source_xy_m: [0.06, 0.07], goal_kind: tabletop, goal_xy_m: [0.02, -0.12], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.08}
+
+    - {id: container_left_front_to_plate_right_back, task_type: container_place, instruction: "Put the cookies box from the left front area onto the plate at the right back", seed: 231, source_xy_m: [0.04, -0.10], goal_kind: body, goal_xy_m: [-0.04, 0.20], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.08}
+    - {id: container_right_front_to_plate_left_back, task_type: container_place, instruction: "Put the angled cookies box from the right front area onto the plate at the left back", seed: 232, source_xy_m: [0.04, 0.08], goal_kind: body, goal_xy_m: [0.04, -0.10], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.06}
+    - {id: container_center_to_plate_back, task_type: container_place, instruction: "Pick up the cookies box near the center and place it onto the plate at the back", seed: 233, source_xy_m: [0.06, -0.04], goal_kind: body, goal_xy_m: [0.02, 0.16], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.0}
+    - {id: container_near_right_to_plate_far_left, task_type: container_place, instruction: "Put the cookies box from the near right area onto the plate at the far left", seed: 234, source_xy_m: [0.02, -0.12], goal_kind: body, goal_xy_m: [-0.04, 0.20], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: -0.04}
+    - {id: container_center_to_plate_lower_right, task_type: container_place, instruction: "Put the angled cookies box near the center onto the plate at the lower right", seed: 235, source_xy_m: [0.02, 0.06], goal_kind: body, goal_xy_m: [0.04, -0.12], object_yaw_rad: -0.5235987755982988, wrist_yaw_rad: -0.5235987755982988, robot_joint1_reset_delta_rad: 0.04}
+    - {id: container_upper_right_to_plate_lower_right, task_type: container_place, instruction: "Pick up the cookies box from the upper right and place it onto the plate at the lower right", seed: 236, source_xy_m: [0.05, 0.09], goal_kind: body, goal_xy_m: [0.02, -0.10], object_yaw_rad: 0.0, wrist_yaw_rad: 0.0, robot_joint1_reset_delta_rad: 0.10}
+
 provenance_overrides:
+  task_set_id: {source: benchmark-defined, 说明: '24 条显式多任务 provisional 配额版本'}
+  dataset_repo_id: {source: benchmark-defined, 说明: 'provisional 本地 LeRobot dataset id；不是最终训练数据版本'}
+  norm_stats_id: {source: benchmark-defined, 说明: 'provisional stats id；最终 scripted+teleop train split 必须重算'}
+  quality_control: {source: benchmark-defined, 说明: '当前不启用任何基于表现的自动拒绝阈值'}
   source_object_body: {source: source-derived, ref: 'locked LIBERO scene cookies_1'}
   goal_body: {source: source-derived, ref: 'locked LIBERO BDDL plate_1 goal asset'}
-  variations: {source: benchmark-defined, 说明: '首任务显式离散配额；前 3 条用于双视角人工验收'}
+  variations: {source: benchmark-defined, 说明: '四类任务各 6 条；位置与姿态来自首批 expert 可达工作区'}

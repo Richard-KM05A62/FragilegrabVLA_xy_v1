@@ -23,11 +23,12 @@
 
 ## 微调数据与 normalization
 
-当前先做 PiPER-X embodiment adaptation，目标是让 π0.5 学会双相机 + 关节状态到七维 PiPER-X action chunk 的控制映射。示范数据从单一稳定 canonical 抓放任务采集，fragile-like object 在本阶段只是稳定抓取载体，不进行易碎评判。
+当前先做 PiPER-X embodiment adaptation，目标是让 π0.5 学会双相机 + 关节状态到七维 PiPER-X action chunk 的控制映射。首批 provisional scripted 示范固定在同一稳定 canonical 场景和 cookies 抓取载体中，使用 pick、pick-and-place、relocate、container/place 四种显式任务语义验证数据管线；fragile-like object 在本阶段只是稳定抓取载体，不进行易碎评判。
 
 本阶段 normalization 使用实际进入该次微调的全部训练示范，统计 OpenPI Piper data transform 后的 `state` 和 `actions`。对当前契约，前六维 action 在统计前已变换为相对当前 state 的 delta，第七维保持绝对 gripper closure。统计量必须与 dataset version、transform id 和微调 checkpoint 绑定。正式 validation/test split 在控制闭环跑通后再建立。
 
-当前 `compute_piper_norm_stats.py` 从 scripted MuJoCo episode 得到的统计只能用于接口校准或 zero-shot 调试，不能作为正式微调 normalization。
+项目侧 raw timeline 统计入口已经删除，避免其产物被误当成训练 normalization。正式统计只使用锁定
+OpenPI commit 的官方 `compute_norm_stats.py`、Piper-specific DataConfig 和最终训练 split。
 
 Pilot 训练使用 LeRobot、20 Hz、front RGB（可选 wrist RGB，但必须与最终 inference 一致）、七维 state 和七维 absolute joint target。模型从 `pi05_base` 初始化，保留默认内部 action dimension，首轮 fine-tuning action horizon 默认为 16，execution horizon 独立 sweep 5/7/10。Pilot 训练限于 10k–20k steps；每 1k 保存、每 5k 永久保留，并用 MuJoCo rollout 选择最终 checkpoint，不仅依赖 loss。
 

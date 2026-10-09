@@ -1,4 +1,4 @@
-version: piper_mujoco_teleop/0.1
+version: piper_mujoco_teleop/0.2
 
 # pyAgxArm is read-only in this pipeline: connect, joint feedback, gripper feedback, disconnect.
 reader:
@@ -12,7 +12,13 @@ reader:
 loops:
   read_hz: 80.0
   control_hz: 40.0
-  render_hz: 25.0
+  render_hz: 20.0
+
+# MuJoCo renders each camera once at recording resolution. The operator window
+# receives only a cheap downsample of those same frames; it does not render again.
+visual:
+  record_resolution_hw: [480, 640]
+  preview_resolution_hw: [240, 320]
 
 mapping:
   startup_alignment:
@@ -45,3 +51,4 @@ mapping:
 
 recording:
   repo_id: local/fragilegrab_piper_mujoco_teleop
+  image_writer_threads: 4

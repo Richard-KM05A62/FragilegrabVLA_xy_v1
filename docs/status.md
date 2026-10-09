@@ -16,7 +16,7 @@
 - 当前 embodiment-adaptation normalization 从实际进入本轮微调的全部训练示范计算，且统计发生在锁定 OpenPI Piper data transform 之后；正式 validation/test 与 stress-test 数据设计后移。
 - 当前最高优先级是 **PiPER-X embodiment adaptation**：先让 π0.5 学会 PiPER-X 的视觉–状态–动作映射和完整抓放控制。fragile-like object 在此阶段只是稳定的抓取载体；易碎评判、损伤阈值、正式 validation 和 safety stress-test 均后移，不作为当前闭环的阻塞项。
 - PiPER-X embodiment pilot 使用 LeRobot、20 Hz、七维 state `[q1..q6, gripper]`、七维 absolute joint target action 与每 episode 一条真实 manipulation instruction。使用front RGB和wrist RGB。
-- Pilot 从 `pi05_base` 初始化，保留模型默认内部 action dimension，dataset 有效 action 维度为 7。Fine-tuning action horizon 首轮候选 10/16，默认选 16；execution horizon 独立 sweep 5/7/10。Zero-shot `pi05_base` 的50步 horizon 作为另一基线保留。
+- Pilot 从 `pi05_base` 初始化，保留模型默认内部 action dimension，dataset 有效 action 维度为 7。当前 20-episode、3k-step LoRA 链路 smoke 固定 fine-tuning action horizon 20；execution horizon 独立 sweep 5/7/10。Zero-shot `pi05_base` 的 50 步 horizon 作为另一基线保留，正式长程 pilot 的训练 horizon 在 smoke 后重新确认。
 - Pilot 训练 10k–20k steps，每 1k 保存 checkpoint，每 5k 永久保留；最终使用仿真 rollout 而不是仅凭 training loss 选择约 4–6 个 checkpoint。Piper-X normalization 为主实验，Trossen stats 仅作独立 ablation。
 - 真实数据采集使用一个外部相机和一个腕部相机；外部相机具备深度能力。
 - 项目成员确认主臂关节和夹爪控制目标可以取得；当前采集器尚未接入或验证该数据流。
@@ -56,6 +56,8 @@
 
 ## In Progress
 
+- 5 GB 云端余量下的 π0.5 LoRA 训练采用只读 `pi05_base` 和多份 adapter-only 回滚快照。官方 `get_freeze_filter()` 除 LoRA leaves 外还训练少量非 LLM projection/head leaves，因此快照保存该 filter 选中的全部参数，但不保存冻结 base。仓库已实现 PiPER-X 专用 horizon-20 配置/adapter、官方统计顺序等价入口、adapter-only 训练入口、原子压缩快照、逐叶 shape/dtype/SHA-256 校验、保存前空间门禁及 `base + adapter` 推理服务；静态编译和快照单测已通过。云端已从 20 条真实 LeRobot episode 生成 horizon-20 transformed norm（SHA-256 `150a819c...6f6b44`），并通过 robot_type、raw/pre-norm/model shape、六关节 absolute-to-delta、gripper 不变、32 维 padding 和官方 trainable-filter alignment gate。2-step GPU smoke 已由项目成员报告成功；500-step 产物的固定场景 MuJoCo rollout 待运行。runner 已增加显式 horizon-20 契约与单 action 诊断配置，同时保留 zero-shot horizon-50 路径。3000-step 运行和重载输出等价性仍为 In Progress。optimizer 断点续训暂不启用；进程中断后从保留 adapter 以新 run 继续，未通过门禁前不得使用默认完整 checkpoint 保存。
+
 - 真实 PiPER-X 作为只读遥操手柄的本地 MuJoCo 示范采集 MVP 已实现：复用 `pyAgxArm` 反馈、LIBERO-derived PiPER-X environment、双 RGB 和七维绝对 target；提供配置化 mapping/限位/低通、独立 read/control/render 节拍、热键、LeRobot 单 episode 写盘和 read/apply/render mean/P95。纯 Python 回归、锁定 MuJoCo 双相机/七维 action smoke，以及 LeRobot 0.3.3 + CPU-only PyTorch 2.7.1 的两帧双 RGB/Parquet/video/manifest 写盘 smoke 已通过；`pyAgxArm` 仍仅在系统 Python，且本机尚未发现 CAN 适配器/真机，因此真机跟随、一条真机遥操 episode 现场写盘及 50–100 ms 视觉反馈仍为 In Progress。
 
 - Zero-shot grasp tendency harness 已接入 policy runner，并完成 seed 7、10 s、`execution_horizon=10` 的 LIBERO-Spatial 实际 rollout。EE–object 距离从 `0.15435 m` 降到 `0.11878 m`，但夹爪在距物体 `0.14862 m` 时已开始闭合，最终未进入 pre-grasp、未指尖接触、未抬升。结论是“弱接近趋势但时序/控制不正确”，不是 grasp success。
@@ -65,7 +67,11 @@
 
 - 将已有真机数采代码纳入可维护的数据规范和验证流程。
 - 完成 LIBERO-derived PiPER-X 单任务控制闭环：保留 arena/furniture/camera/placement，接入 fragile-like target，并采集第一批 embodiment-adaptation 示范。
-- LIBERO-derived cookies-box-to-plate 首任务已配置 12 条纯几何 variation，先用前 3 条做人工双视角验收。工作区收缩后，第 1、2 条已分别完成抓取、约 0.106 m 抬升和稳定放置；第 3 条完成抓取与抬升但放置后侧翻，已将未验证的正向腕部 yaw 收敛为已验证的姿态，待项目成员只复测第 3 条。旧的 10-episode bowl diagnostic pilot 为 0/10，旧的 contact/force 分支版本为 2/3，均拒绝进入训练和 normalization。当前版本的 force/contact 只做被动记录，不干预动作；不得表述为训练数据集已验证。
+- 旧 `gentle_demo_pilot.yaml` 的 24 条多任务设计和已生成的 4 条 run 已降级为 pipeline smoke：pick 可用，pick-and-place 存在 prompt/goal 语义不一致，relocate 未完成抓取，container/place 出现目标盘漂移。原始数据保留，但不进入本轮 normalization 或训练集。
+- 最新 embodiment task plan 已锁定 8 个官方 LIBERO-derived 模板和 100 条配额（54 scripted + 46 teleop）。原单场景 `norm20` 因多样性不成立，其配置、OpenPI 注入/打包脚本和专用 A/B 入口已删除；历史数据只保留为外部实验记录。首批改为 5 个官方 BDDL 任务×4 placement seeds，覆盖 bowl-to-plate、object-to-basket、package-to-tray 和 mug-to-plate；当前只有第 1 个场景已接入，因此这 20 条尚不可执行。
+- Scripted provisional 仍只允许空 episode、NaN/Inf、shape、时间戳、image/state/action 长度、模型硬限位和序列化错误阻止无效 LeRobot 提交；任务成功、抓持、抬升、动作/跟踪、图像变化、碰撞与力全部只记录为 metric/warning。首批 20 条实际生成、人工双视角审核及 OpenPI 官方 loader/compute norm stats 实读仍为 In Progress。
+- 项目成员已运行 scripted provisional 第 1 条 variation：任务成功，最大抬升约 `0.10555 m`、最终 XY 误差约 `0.000534 m`、物体近静止且保持竖直；两路 `640×480@20 Hz` MP4 均完整 400 帧。旧 v0.3 实现因不恰当的夹爪表现阈值未提交 LeRobot；v0.4 已撤销表现型自动拒绝，需用新目录重跑以验证 LeRobot 提交。
+- Teleop 图像尺寸已拆分为单次 `640×480` render/record 与同帧 `320×240` downsample preview，默认 record/render 20 Hz，并启用 LeRobot 异步 image writer；现场视觉延迟仍待真机 CAN 恢复后测量。
 - 从实际用于微调的全部 embodiment-adaptation 训练数据计算 normalization，先跑通微调与 MuJoCo 闭环；正式 split、validation 和 safety stress-test 后移。
 - 以 `configs/experiment_v0.1.example.yaml`、Episode Schema v0.1 和 Evaluation Schema v0.1 建立仿真实验记录契约；runner/validator 已实现，尚未在 Isaac Sim 中运行验证。
 - 在 Isaac Sim 6.1.0 目标机准备并验证 Piper 场景，生成第一份 policy-free instrumented episode；π0.5 inference 暂不在该步骤实现。
@@ -78,7 +84,7 @@
 
 - 官方 PiPER-X 资产与用户真机的计量级几何/动力学差异；benchmark-defined 执行器、gravcomp 与工作位没有真机辨识证据。
 - D435 仿真 fovy 与真机内参等价性、F2–F5 实现、RoboCasa 资产选择、matched pair 生成器与物理/视觉随机化。
-- Canonical 首任务已固定为 LIBERO-Spatial 黑碗到盘子；尚待确定后续 fragile / fragile-like object 列表、重定义 predicate 阈值、示范来源和每个 split 的 episode 数量。
+- Canonical 首任务已固定为 LIBERO-Spatial 黑碗到盘子；后续 8 个模板/100 条配额已确定，但各官方场景的 PiPER-X composition、predicate 和可达区运行验证仍为 TBD。
 - Stress-test 各维度的等级、取值范围、单因素/联合组合规则，以及“脆弱参数”和“接触风险”的可执行定义。
 - 真实易碎对象资产及材料阈值校准；当前 LIBERO 黑碗只是刚体 embodiment-adaptation 载体，不代表已实现易碎物理。
 

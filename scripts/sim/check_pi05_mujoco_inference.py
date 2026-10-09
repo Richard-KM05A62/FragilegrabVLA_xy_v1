@@ -49,7 +49,9 @@ def main() -> None:
     docs = load_configs(args.benchmark_config_dir, object_config=args.object_config)
     rollout = load_rollout_config(args.rollout_config)
     seed = docs["benchmark"]["values"]["seed"] if args.seed is None else args.seed
-    contract = PiperPi05Contract(rollout["norm_stats_id"])
+    contract = PiperPi05Contract(
+        rollout["norm_stats_id"], action_horizon=rollout["action_horizon"]
+    )
 
     env = MujocoQualificationEnv(docs, robot_assets)
     try:

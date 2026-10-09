@@ -209,6 +209,7 @@ tempCodeRunnerFile.py
 
 # FragileGrabVLA local configuration and generated artifacts
 configs/local/
+.local_work/
 *.local.toml
 *.local.yaml
 *.local.yml

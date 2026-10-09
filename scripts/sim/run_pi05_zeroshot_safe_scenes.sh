@@ -31,7 +31,7 @@ for scene in project libero_spatial; do
     object_config="configs/benchmark/object.libero_spatial_bowl_to_plate.yaml"
     scene_rollout_config="configs/pi05_mujoco_libero_spatial_zero_shot_diagnostic.yaml"
   fi
-  env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
+  env -u PYTHONPATH NUMBA_CACHE_DIR=.local_work/numba-cache MUJOCO_GL=egl \
     "$python_bin" scripts/sim/run_pi05_mujoco.py \
     --robot-assets "$robot_assets" \
     --object-config "$object_config" \

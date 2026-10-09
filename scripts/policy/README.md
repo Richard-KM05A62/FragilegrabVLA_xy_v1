@@ -2,6 +2,8 @@
 
 当前部署锁定 AutoDL 已验证的 OpenPI commit `215abfb217dbac7d5f1273282331b9b1866c0479` 和官方 `pi05_base` checkpoint。该 commit 是本地接口分析基线 `15a9616a00943ada6c20a0f158e3adb39df2ccac` 的直接子提交，上游只修改了 DROID 文档拼写，相关接口代码一致。契约 `piper_x_joint_position_dual_rgb_v0.3` 使用全局 RGB + 夹爪中部 D435 RGB，有效接口是七维：六轴关节角（rad）加夹爪闭合度 `[0,1]`；模型内部仍保留 32 维 padding 和 50-step action chunk。Normalization 必须使用 `piper_x_` 前缀并携带匹配的 provenance。
 
+当前 horizon-20、batch-8、3000-step LoRA smoke 使用项目自有配置、统计、离线对齐、LoRA-only 训练和 adapter 推理入口；完整云端步骤见 [`docs/piper_pi05_lora_3k_autodl.md`](../../docs/piper_pi05_lora_3k_autodl.md)。该实验不调用官方原始 checkpoint 保存路径。
+
 ## 0. 最短 workflow smoke（已完成，仅供重现）
 
 这条路径不依赖机器人或 MuJoCo 资产，只验证：本地双 RGB + 七维 state + prompt 能否送达云端，云端能否用官方 `pi05_base` 返回 `(50, 7)` action chunk。合成 normalization 带有 `execution_permitted=false`；所有闭环 runner 会拒绝它，结果不得用于动作执行或表述为 PiPER-X 抓取能力。
@@ -41,16 +43,12 @@ ssh -N -L 8000:127.0.0.1:8000 user@cloud-host
 
 成功标志是输出中的 `status` 为 `passed_without_action_execution`、`action_shape` 为 `[50, 7]`，并记录至少一条推理延迟。这里的 `execution_permitted` 只是防误用的软件门禁，不是 Safety Layer。
 
-## 1. 生成本机校准统计
+## 1. 准备训练绑定的 normalization
 
-```bash
-python3 scripts/policy/compute_piper_norm_stats.py \
-  /path/to/run_a /path/to/run_b /path/to/run_c \
-  --output assets/local/piper_x_mujoco_scripted_calibration_v0.1 \
-  --norm-stats-id piper_x_mujoco_scripted_calibration_v0.1
-```
-
-该产物只做输入/输出尺度校准，不修改权重，也不是 Piper 真机数据分布的证明。`assets/local/` 不进入 Git。
+可执行 normalization 只能由锁定 OpenPI commit 的官方 `compute_norm_stats.py` 通过 Piper-specific
+DataConfig 和官方 LeRobot loader 计算。不得从 raw timeline 旁路生成，也不得将历史单场景或
+workflow-smoke stats 用于微调或闭环。产物必须记录 dataset、transform、action horizon、OpenPI commit
+和 SHA-256，并与对应微调 checkpoint 一起部署。`assets/local/` 不进入 Git。
 
 ## 2. 在 OpenPI 机器启动专用服务
 
@@ -70,7 +68,7 @@ python3 scripts/policy/compute_piper_norm_stats.py \
 ## 3. 先做不执行动作的推理检查
 
 ```bash
-env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
+env -u PYTHONPATH NUMBA_CACHE_DIR=.local_work/numba-cache MUJOCO_GL=egl \
   .venv-mujoco/bin/python scripts/sim/check_pi05_mujoco_inference.py \
   --robot-assets /path/to/agx_arm_sim \
   --rollout-config configs/pi05_mujoco_zero_shot.example.yaml \
@@ -86,7 +84,7 @@ env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
 只有第 3 步通过后再运行：
 
 ```bash
-env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
+env -u PYTHONPATH NUMBA_CACHE_DIR=.local_work/numba-cache MUJOCO_GL=egl \
   .venv-mujoco/bin/python scripts/sim/run_pi05_mujoco.py \
   --robot-assets /path/to/agx_arm_sim \
   --rollout-config configs/pi05_mujoco_zero_shot.example.yaml \
@@ -102,7 +100,7 @@ env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=egl \
 严格模式证明原始 `pi05_base` 输出会被拒绝后，可使用独立配置观察它在 MuJoCo 中的受限行为：
 
 ```bash
-env -u PYTHONPATH NUMBA_CACHE_DIR=/tmp/fragilegrab-numba-cache MUJOCO_GL=glfw \
+env -u PYTHONPATH NUMBA_CACHE_DIR=.local_work/numba-cache MUJOCO_GL=glfw \
   .venv-mujoco/bin/python scripts/sim/run_pi05_mujoco.py \
   --robot-assets /path/to/agx_arm_sim \
   --rollout-config configs/pi05_mujoco_zero_shot_projected.example.yaml \

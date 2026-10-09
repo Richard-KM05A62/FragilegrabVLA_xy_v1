@@ -18,7 +18,7 @@ MuJoCo PiPER-X + scene
      - two fingers -> closure [0,1]
      - policy state = [q1..q6, closure]
   -> WebSocket -> locked OpenPI server
-  -> PiperInputs
+  -> PiperXInputs
      - base_0_rgb present
      - left_wrist_0_rgb present
      - right_wrist_0_rgb zero + masked
@@ -27,7 +27,7 @@ MuJoCo PiPER-X + scene
   -> pi05_base, internal action_dim=32, action_horizon=50
   -> inverse normalization
   -> AbsoluteActions(mask first six dimensions)
-  -> PiperOutputs slices seven effective dimensions
+  -> PiperXOutputs slices seven effective dimensions
   -> client proposal [q1..q6 absolute rad, closure 0..1]
   -> closure maps linearly: 0=open=0.05 m, 1=closed=0 m
   -> strict range and per-step delta validation
